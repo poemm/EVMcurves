@@ -1,0 +1,19 @@
+
+#include "miller_loop.huff"
+
+
+#define macro PAIRING = takes(0) returns(0) {
+
+  INIT_MEM()	// puts things like the prime in memory, required
+
+  MILLER_LOOP_TEST_VALUES()
+  MILLER_LOOP()
+
+  // final exp fails for non-unrolled version because bytecode size is too big for jumpdests
+  // and unrolled version takes 20+ minutes to generate
+  //FINAL_EXPONENTIATION_TEST_VALUES()
+  //FINAL_EXPONENTIATION()
+
+  0xff 0 mstore8 1 0 return	// return a single byte, 0xff, to make sure it executed this far
+}
+

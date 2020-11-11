@@ -1,0 +1,23 @@
+diff -ruN huff/src/opcodes/opcodes.js huff_modified/src/opcodes/opcodes.js
+--- huff/src/opcodes/opcodes.js	2020-08-25 22:09:19.874010859 -0500
++++ huff_modified/src/opcodes/opcodes.js	2020-08-25 22:12:20.621659305 -0500
+@@ -135,6 +135,9 @@
+     a2: 'LOG2',
+     a3: 'LOG3',
+     a4: 'LOG4',
++    c0: 'ADDMOD384',
++    c1: 'SUBMOD384',
++    c2: 'MULMODMONT384',
+     f0: 'CREATE',
+     f1: 'CALL',
+     f2: 'CALLCODE',
+@@ -246,6 +249,9 @@
+     log2: 'a2',
+     log3: 'a3',
+     log4: 'a4',
++    addmod384: 'c0',
++    submod384: 'c1',
++    mulmodmont384: 'c2',
+     create: 'f0',
+     call: 'f1',
+     callcode: 'f2',
