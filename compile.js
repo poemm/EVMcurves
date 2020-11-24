@@ -8,9 +8,10 @@ const pathToData = path.posix.resolve(__dirname, './');
 
 const { inputMap, macros, jumptables } = parser.parseFile('main.huff', pathToData);
 
+var arg = process.argv[2];
+
 const {
     data: { bytecode: macroCode },
-} = parser.processMacro('PAIRING', 0, [], macros, inputMap, jumptables);
-
+} = parser.processMacro(arg, 0, [], macros, inputMap, jumptables);
 console.log("0x"+macroCode)
 

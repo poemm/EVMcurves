@@ -1,19 +1,77 @@
+#include "bls12_381.huff"
 
-#include "miller_loop.huff"
 
 
-#define macro PAIRING = takes(0) returns(0) {
+#define macro MILLER_LOOP_CONTRACT = takes(0) returns(0) {
+  // read calldata
+  576 0 15416 calldatacopy	// copy calldata with stack (rightmost is top): length calldataoffset memoryoffset
 
-  INIT_MEM()	// puts things like the prime in memory, required
+  INIT_MEM()
+
+  MILLER_LOOP()
+
+  // write returndata
+  576 0 return	// return 576 bytes started at hard-coded position 0
+}
+
+
+
+#define macro FINAL_EXPONENTIATION_CONTRACT = takes(0) returns(0) {
+  // read calldata
+  576 0 0 calldatacopy	// copy calldata with stack (rightmost is top): length calldataoffset memoryoffset
+
+  INIT_MEM()
+
+  FINAL_EXPONENTIATION()
+
+  // write returndata
+  576 0 return	// return 576 bytes started at hard-coded position 0
+}
+
+
+
+#define macro MILLER_LOOP_TEST_HARD_CODED = takes(0) returns(0) {
+  INIT_MEM()
 
   MILLER_LOOP_TEST_VALUES()
   MILLER_LOOP()
 
-  // final exp fails for non-unrolled version because bytecode size is too big for jumpdests
-  // and unrolled version takes 20+ minutes to generate
-  //FINAL_EXPONENTIATION_TEST_VALUES()
-  //FINAL_EXPONENTIATION()
+  // write returndata
+  576 0 return	// return 576 bytes started at hard-coded position 0
+}
 
-  0xff 0 mstore8 1 0 return	// return a single byte, 0xff, to make sure it executed this far
+
+
+#define macro FINAL_EXPONENTIATION_TEST_HARD_CODED = takes(0) returns(0) {
+  INIT_MEM()
+
+  FINAL_EXPONENTIATION_TEST_VALUES()
+  FINAL_EXPONENTIATION()
+
+  // write returndata
+  576 0 return	// return 576 bytes started at hard-coded position 0
+}
+
+
+#define macro PAIRING_EQ2_TEST = takes(0) returns(0) {
+  INIT_MEM()
+  MILLER_LOOP_TEST_VALUES()
+
+  PAIRING_EQ2()
+
+  1 0 return	// return 1 bytes started at hard-coded position 0
+}
+
+#define macro PAIRING_DEBUGGING = takes(0) returns(0) {
+  // test stuff by uncommenting here
+  INIT_MEM()
+
+  MILLER_LOOP_TEST_VALUES()
+  MILLER_LOOP()
+  FINAL_EXPONENTIATION()
+
+  //PAIRING_EQ2()
+
+  576 0 return	// return 576 bytes started at hard-coded position 0
 }
 
