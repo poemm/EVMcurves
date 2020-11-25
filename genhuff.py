@@ -338,7 +338,7 @@ def gen_f2mul(out,x,y,mod):
   tmp1 = buffer_f2mul
   tmp2 = tmp1+48
   tmp3 = tmp2+48
-  case=3  # choose a case to experiment with different f2muls
+  case=4  # choose a case to experiment with different f2muls
   if case==0:
     pass # deleted, similar to case 3
   elif case==1:
@@ -1850,6 +1850,7 @@ def gen_pairing():
   # this is untested, but it has two miller loops, a f2mul, a final exponentiation, and an equality check
   print("#define macro PAIRING_EQ2 = takes(0) returns(0) {")
   # first miller loop
+  # gen_return(buffer_inputs, 48*12)
   gen_miller_loop(buffer_miller_output,buffer_inputs,buffer_inputs+96,mod)
   gen_memcopy(buffer_f12_function2,buffer_miller_output,48*12)
 
