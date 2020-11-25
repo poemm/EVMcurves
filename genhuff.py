@@ -1381,7 +1381,7 @@ def gen_Edouble__dbl_2009_l(f,XYZout,XYZ,mod):
 # hard-coded miller loop inputs, optional
 # these inputs can be hard-coded anywhere before the miller loop starts, we copy/paste the output of this function into main.huff
 def gen_miller_loop_test_input():
-  case = 3
+  case = 2
   if case==0:
     # test from https://tools.ietf.org/id/draft-yonezawa-pairing-friendly-curves-02.html#rfc.appendix.B
     # Input x,y values:
@@ -1852,6 +1852,9 @@ def gen_pairing():
   # first miller loop
   gen_miller_loop(buffer_miller_output,buffer_inputs,buffer_inputs+96,mod)
   gen_memcopy(buffer_f12_function2,buffer_miller_output,48*12)
+
+  gen_return(buffer_miller_output, 48*12)
+
   # second miller loop
   gen_miller_loop(buffer_miller_output,buffer_inputs,buffer_inputs+96,mod)
   gen_memcopy(buffer_f12_function,buffer_miller_output,48*12)
@@ -1861,8 +1864,8 @@ def gen_pairing():
   gen_final_exponentiation_with_function_calls_optimized_mem_locations(buffer_finalexp_output,buffer_f12_function,mod)
   # check if equals one
 
-  gen_return(buffer_finalexp_output, 48*12)
   gen_equals(f12one,buffer_finalexp_output,12*48)
+  # gen_return(buffer_finalexp_output, 48*12)
   # gen_return(f12one, 48*12)
   print("} // PAIRING_EQ2")
 

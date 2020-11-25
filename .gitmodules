@@ -4,3 +4,6 @@
 [submodule "evmone"]
 	path = evmone
 	url = https://github.com/jwasinger/evmone
+[submodule "blst"]
+	path = blst
+	url = https://github.com/jwasinger/blst
