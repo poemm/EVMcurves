@@ -15,6 +15,8 @@
 
 
 
+def gen_return(offset, length):
+  print("{} {} return".format(length, offset))
 
 #####################
 # memcopy and mstore
@@ -1858,7 +1860,10 @@ def gen_pairing():
   # final exp
   gen_final_exponentiation_with_function_calls_optimized_mem_locations(buffer_finalexp_output,buffer_f12_function,mod)
   # check if equals one
+
+  gen_return(buffer_finalexp_output, 48*12)
   gen_equals(f12one,buffer_finalexp_output,12*48)
+  # gen_return(f12one, 48*12)
   print("} // PAIRING_EQ2")
 
 # the main generators
