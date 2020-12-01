@@ -1,5 +1,9 @@
+#EVMCurves
+
 This is an experiment to implement the BLS12-381 pairing operation in EVM with the proposed EVM384 extension (three new opcodes: `ADDMOD384`, `SUBMOD384`, `MULMODMONT384`). Feedback and discussion occurs on Ethereum allcoredevs chat, allcoredevs calls, and on [this discussion thread](https://ethereum-magicians.org/t/evm384-feedback-and-discussion/4533).
 
+
+Cryptography is implemented in a python generator (`genhuff.py`) which produces a [Huff](https://github.com/aztecprotocol/huff) module for BLS12381 operations in EVM384 (`bls12_381.huff`).
 
 ## Files
 
@@ -11,55 +15,23 @@ main.huff		 huff file which selects which modules in BLS12_381.huff to assemble 
 miller_loop.hex		 EVM bytecode generated from main.huff module MILLER_LOOP_TEST_HARD_CODED
 inversemod_bls12381.huff included in bls12_381.huff, implements field inversemod with respect to the BLS12-381 prime; to generate this file: https://gist.github.com/poemm/52653a344528278f09403354569d0855
 
-compile.js               calls the huff compiler on main.huff
-huff.patch               patch to tell huff how to handle evm384 opcodes
+compile.js              compiles main.huff to EVM384
 ```
 
 
-## Generate EVM bytecode
+## Usage 
 
-Get these files.
-
+Install dependencies
 ```
-git clone https://github.com/poemm/EVMcurves
-cd EVMcurves
+git submodule update --init --recursive
+(cd evmone && mkdir build && cmake -DEVMONE_TESTING=ON .. && make)
+
+# build evm bytecode for miller loop / final exp tests
+make build
+
+# test them with evmone-bench
+make test
 ```
-
-Get huff. Note: we put huff inside directory `EVMcurves/` because the path to huff is hardcoded in `compile.js`.
-
-```
-git clone https://github.com/AztecProtocol/huff.git
-```
-
-Patch huff with new EVM384 opcodes.
-
-```
-#diff -ruN huff huff_modified > huff.patch
-patch -s -p0 < huff.patch
-```
-
-Get dependencies listed in `huff/package.json`. (Don't worry, everything is local to the created dir `node_modules/`, can just delete that dir.)
-
-```
-cd huff
-npm install	# note: npm caches packages in /home/<user>/.npm. To remove cache: npm cache clean
-cd ..
-```
-
-Finally generate the EVM bytecode for the Miller loop, with huff as an intermediate step.
-
-```
-python3 genhuff.py > bls12_381.huff
-node compile.js MILLER_LOOP_TEST_HARD_CODED > miller_loop.hex
-```
-
-See `main.huff` to see other options besides `MILLER_LOOP_TEST_HARD_CODED`, or edit `genhuff.py` to build your own huff modules.
-
-
-## Execute
-
-To execute the generated EVM bytecode, one needs an EVM implementation with the EVM384 extension. Here is one for [evmone](https://github.com/jwasinger/evmone/tree/evm384-v7). Note: currently we generate EVM384v7 bytecode.
-
 
 ## TODO
 
