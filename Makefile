@@ -1,5 +1,7 @@
 all: build test
 
+test: test_evmone_evm384_bls12381_final_exp test_evmone_evm384_bls12381_miller_loop
+
 build: build_bls12381 build_bls12381_miller_loop_test
 
 build_bls12381:
