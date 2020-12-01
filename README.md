@@ -24,7 +24,7 @@ compile.js              compiles main.huff to EVM384
 Install dependencies
 ```
 git submodule update --init --recursive
-(cd evmone && mkdir build && cmake -DEVMONE_TESTING=ON .. && make)
+(cd evmone && mkdir build && cd build && cmake -DEVMONE_TESTING=ON .. && make)
 
 # build evm bytecode for miller loop / final exp tests
 make build
