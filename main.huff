@@ -36,8 +36,7 @@
   MILLER_LOOP_TEST_VALUES()
   MILLER_LOOP()
 
-  // write returndata
-  576 0 return	// return 576 bytes started at hard-coded position 0
+  576 10664 return // return the miller loop result hard-coded at position 10664
 }
 
 
