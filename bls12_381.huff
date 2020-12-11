@@ -7,15 +7,15 @@
 } // INIT_MEM
 #define macro MILLER_LOOP_TEST_VALUES = takes(0) returns(0) {
 
-0xedae919853b05e124b0df9d0eb00bb861ce4007fb66a592b5b010403b043dc81 0x3c38 mstore
-0x7a0761ddbeef7f574bc8f1ec25da810f199ebd34b2dee439b771301cd36f80cd 0x3c58 mstore
-0x8131b0471cfdf71d6c994711f63a9a20fe43b77778e36c6d9186ec919562af11 0x3c78 mstore
-0xb8bd21c1c85680d4efbb05a82603ac0b77d1e37a640b51b4023b40fad47ae4c6 0x3c98 mstore
-0x5110c52d27050826910a8ff0b2a24a027e2b045d057dace5575d941312f14c33 0x3cb8 mstore
-0x49507fdcbb61dab51ab62099d0d06b59654f2788a0d3ac7d609f7152602be013 0x3cd8 mstore
-0x0128b808865493e189a2ac3bccc93a922cd16051699a426da7d3bd8caa9bfdad 0x3cf8 mstore
-0x1a352edac6cdc98c116e7d7227d5e50cbe795ff05f07a9aaa11dec5c270d373f 0x3d18 mstore
-0xab992e57ab927426af63a7857e283ecb998bc22bb0d2ac32cc34a72ea0c40606 0x3d38 mstore
+0x160c53fd9087b35cf5ff769967fc1778c1a13b14c7954f1547e7d0f3cd6aaef0 0x3c38 mstore
+0x40f4db21cc6eceed75fb0b9e417701127122e70cd593acba8efd18791a63228c 0x3c58 mstore
+0xce250757135f59dd945140502958ac51c05900ad3f8c1c0e6aa20850fc3ebc0b 0x3c78 mstore
+0x100a9402a28ff2f51a96b48726fbf5b380e52a3eb593a8a1e9ae3c1a9d999498 0x3c98 mstore
+0x6b36631863b7676fd7bc50439291810506f6239e75c0a9a5c360cdbc9dc5a0aa 0x3cb8 mstore
+0x067886e2187eb13b67b34185ccb61a1b478515f20eedb6c2f3ed6073092a9211 0x3cd8 mstore
+0x4a4c4960f80a734c5a9c365e1ffa7c595a630aaa6c85e6e75f490d6ee9b5efbb 0x3cf8 mstore
+0xa225eff075a9d307e5da807e8efd83005db064df92fcc0addc61142b0a27aa18 0x3d18 mstore
+0xa0ebe43b6aacad863aa33dc94e5c4979edca3ca4505817e7f21bde63a1c22b0b 0x3d38 mstore
 } // MILLER_LOOP_TEST_VALUES
 #define macro FINAL_EXPONENTIATION_TEST_VALUES = takes(0) returns(0) {
 0x3cf8fe6aba6061de70638196991c6c245ccc8d011108841a2d19eecc877c3fbc 0x29a8 mstore
@@ -4270,6 +4270,7 @@ pop
 // f12conjugate end
 // begin memcopy length 576
 0x29a8 mload 0x240 mstore 0x29c8 mload 0x260 mstore 0x29e8 mload 0x280 mstore 0x2a08 mload 0x2a0 mstore 0x2a28 mload 0x2c0 mstore 0x2a48 mload 0x2e0 mstore 0x2a68 mload 0x300 mstore 0x2a88 mload 0x320 mstore 0x2aa8 mload 0x340 mstore 0x2ac8 mload 0x360 mstore 0x2ae8 mload 0x380 mstore 0x2b08 mload 0x3a0 mstore 0x2b28 mload 0x3c0 mstore 0x2b48 mload 0x3e0 mstore 0x2b68 mload 0x400 mstore 0x2b88 mload 0x420 mstore 0x2ba8 mload 0x440 mstore 0x2bc8 mload 0x460 mstore
+576 10664 return
 0x00000a5800003c3800003c3800000900 addmod384
 0x00000a580000048000000a5800000900 submod384
 0x00000a8800003c6800003c6800000900 addmod384

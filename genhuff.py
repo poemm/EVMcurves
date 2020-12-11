@@ -338,7 +338,7 @@ def gen_f2mul(out,x,y,mod):
   tmp1 = buffer_f2mul
   tmp2 = tmp1+48
   tmp3 = tmp2+48
-  case=4  # choose a case to experiment with different f2muls
+  case=3  # choose a case to experiment with different f2muls
   if case==0:
     pass # deleted, similar to case 3
   elif case==1:
@@ -1397,16 +1397,16 @@ def gen_miller_loop_test_input():
     gen_memstore(buffer_inputs+96,inE2)
   elif case==2:
     print()
-    # these are the identity elements, copied from https://github.com/ethereum/EIPs/blob/master/EIPS/eip-2539.md#specification
+    # generators (in montgomery)
     # G1:
-    inE1  = bytearray.fromhex("008848defe740a67c8fc6225bf87ff5485951e2caa9d41bb188282c8bd37cb5cd5481512ffcd394eeab9b16eb21be9ef")[::-1]
-    inE1  += bytearray.fromhex("01914a69c5102eff1f674f5d30afeec4bd7fb348ca3e52d96d182ad44fb82305c2fe3d3634a9591afd82de55559c8ea6")[::-1]
+    inE1  = bytearray.fromhex("120177419e0bfb75edce6ecc21dbf440f0ae6acdf3d0e747154f95c7143ba1c17817fc679976fff55cb38790fd530c16")[::-1]
+    inE1 += bytearray.fromhex("0bbc3efc5008a26a0e1c8c3fad0059c051ac582950405194dd595f13570725ce8c22631a7918fd8ebaac93d50ce72271")[::-1]
     gen_memstore(buffer_inputs,inE1)
     # G2:
-    inE2 = bytearray.fromhex("018480be71c785fec89630a2a3841d01c565f071203e50317ea501f557db6b9b71889f52bb53540274e3e48f7c005196")[::-1] 
-    inE2 += bytearray.fromhex("00ea6040e700403170dc5a51b1b140d5532777ee6651cecbe7223ece0799c9de5cf89984bff76fe6b26bfefa6ea16afe")[::-1] 
-    inE2 += bytearray.fromhex("00690d665d446f7bd960736bcbb2efb4de03ed7274b49a58e458c282f832d204f2cf88886d8c7c2ef094094409fd4ddf")[::-1] 
-    inE2 += bytearray.fromhex("00f8169fd28355189e549da3151a70aa61ef11ac3d591bf12463b01acee304c24279b83f5e52270bd9a1cdd185eb8f93")[::-1] 
+    inE2  = bytearray.fromhex("058191924350bcd76f67b7631863366b9894999d1a3caee9a1a893b53e2ae580b3f5fb2687b4961af5f28fa202940a10")[::-1] 
+    inE2 += bytearray.fromhex("11922a097360edf3c2b6ed0ef21585471b1ab6cc8541b3673bb17e18e2867806aaa0c59dbccd60c3a5a9c0759e23f606")[::-1] 
+    inE2 += bytearray.fromhex("0083fd8e7e80dae507d3a975f0ef25a2bbefb5e96e0d495fe7e6856caa0a635a597cfa1f5e369c5a4c730af860494c4a")[::-1] 
+    inE2 += bytearray.fromhex("0b2bc2a163de1bf2e7175850a43ccaed79495c4ec93da33a86adac6a3be4eba018aa270a2b1461dcadc0fc92df64b05d")[::-1] 
     gen_memstore(buffer_inputs+96,inE2)
   elif case==3:
     print()
