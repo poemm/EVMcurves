@@ -54,7 +54,7 @@
 
 #define macro PAIRING_EQ2_TEST = takes(0) returns(0) {
   INIT_MEM()
-  MILLER_LOOP_TEST_VALUES()
+  PAIRING_EQ2_TEST_VALUES()
 
   PAIRING_EQ2()
 

@@ -15,6 +15,9 @@
 
 
 
+SIZE_G2 = 192 # 2x SIZE_G1 or special for bls12_381?
+SIZE_G1 = 96
+
 def gen_return(offset, length):
   print("{} {} return".format(length, offset))
 
@@ -1370,9 +1373,41 @@ def gen_Edouble__dbl_2009_l(f,XYZout,XYZ,mod):
 
 
 
+
+
+p_g1_1 = buffer_inputs
+p_g2_1 = buffer_inputs + SIZE_G1
+p_g1_2 = buffer_inputs + SIZE_G1 + SIZE_G2
+p_g2_2 = buffer_inputs + SIZE_G1 + SIZE_G2 + SIZE_G1
+
 ###########
 # Pairing #
 ###########
+
+def gen_pairing_eq2_test_input():
+    # G1 generator (montgomery):
+    input_val = bytearray.fromhex("120177419e0bfb75edce6ecc21dbf440f0ae6acdf3d0e747154f95c7143ba1c17817fc679976fff55cb38790fd530c16")[::-1]
+    input_val += bytearray.fromhex("0bbc3efc5008a26a0e1c8c3fad0059c051ac582950405194dd595f13570725ce8c22631a7918fd8ebaac93d50ce72271")[::-1]
+    gen_memstore(p_g1_1,input_val)
+
+    # G2 generator (montgomery):
+    input_val += bytearray.fromhex("058191924350bcd76f67b7631863366b9894999d1a3caee9a1a893b53e2ae580b3f5fb2687b4961af5f28fa202940a10")[::-1] 
+    input_val += bytearray.fromhex("11922a097360edf3c2b6ed0ef21585471b1ab6cc8541b3673bb17e18e2867806aaa0c59dbccd60c3a5a9c0759e23f606")[::-1] 
+    input_val += bytearray.fromhex("0083fd8e7e80dae507d3a975f0ef25a2bbefb5e96e0d495fe7e6856caa0a635a597cfa1f5e369c5a4c730af860494c4a")[::-1] 
+    input_val += bytearray.fromhex("0b2bc2a163de1bf2e7175850a43ccaed79495c4ec93da33a86adac6a3be4eba018aa270a2b1461dcadc0fc92df64b05d")[::-1] 
+    gen_memstore(p_g2_1,input_val)
+
+    # -G1 (montgomery):
+    input_val += bytearray.fromhex("120177419e0bfb75edce6ecc21dbf440f0ae6acdf3d0e747154f95c7143ba1c17817fc679976fff55cb38790fd530c16")[::-1]
+    input_val += bytearray.fromhex("0e44d2ede97744303cff1b76964b531712caf35ba344c12a89d7738d9fa9d05592899ce4383b0270ff526c2af318883a")[::-1]
+    gen_memstore(p_g1_2,input_val)
+
+    # G2 generator (montgomery):
+    input_val += bytearray.fromhex("058191924350bcd76f67b7631863366b9894999d1a3caee9a1a893b53e2ae580b3f5fb2687b4961af5f28fa202940a10")[::-1] 
+    input_val += bytearray.fromhex("11922a097360edf3c2b6ed0ef21585471b1ab6cc8541b3673bb17e18e2867806aaa0c59dbccd60c3a5a9c0759e23f606")[::-1] 
+    input_val += bytearray.fromhex("0083fd8e7e80dae507d3a975f0ef25a2bbefb5e96e0d495fe7e6856caa0a635a597cfa1f5e369c5a4c730af860494c4a")[::-1] 
+    input_val += bytearray.fromhex("0b2bc2a163de1bf2e7175850a43ccaed79495c4ec93da33a86adac6a3be4eba018aa270a2b1461dcadc0fc92df64b05d")[::-1] 
+    gen_memstore(p_g1_1,input_val)
 
 
 ##############
@@ -1542,7 +1577,7 @@ def gen_add_dbl_loop(out,T,Q,Px2,mod):
 10000000000000000
   """
 
-def gen_miller_loop(out,P,Q,mod):
+def gen_miller_loop(out,P,Q,mod,gen_break=False):
   # P is E1 point (affine), Q is E2 point (affine)
   PX = P
   PY = PX+48
@@ -1564,6 +1599,8 @@ def gen_miller_loop(out,P,Q,mod):
   # execute
   gen_start_dbl(out,T,Px2,mod)
   gen_add_dbl_loop(out,T,Q,Px2,mod)
+  #if not gen_break:
+  #  gen_return(out, 12 * 48)
   gen_f12conjugate(out,mod)
 
 # Miller Loop
@@ -1831,6 +1868,9 @@ def gen_pairing():
   print("#define macro MILLER_LOOP_TEST_VALUES = takes(0) returns(0) {")
   gen_miller_loop_test_input()	# hard-code values for testing
   print("} // MILLER_LOOP_TEST_VALUES")
+  print("#define macro PAIRING_EQ2_TEST_VALUES = takes(0) returns(0) {")
+  gen_pairing_eq2_test_input()	# hard-code values for testing
+  print("} // MILLER_LOOP_TEST_VALUES")
   print("#define macro FINAL_EXPONENTIATION_TEST_VALUES = takes(0) returns(0) {")
   gen_final_exp_test_input()	# hard-code values for testing
   print("} // FINAL_EXPONENTIATION_TEST_VALUES")
@@ -1849,16 +1889,30 @@ def gen_pairing():
   # pairing equation with two pairings, using the multi-pairing trick so only one final exponentiation
   # this is untested, but it has two miller loops, a f2mul, a final exponentiation, and an equality check
   print("#define macro PAIRING_EQ2 = takes(0) returns(0) {")
+
+
+  # G2 point (correct)
+  # gen_return(buffer_inputs + 96, SIZE_G2)
+
   # first miller loop
   # gen_return(buffer_inputs, 48*12)
-  gen_miller_loop(buffer_miller_output,buffer_inputs,buffer_inputs+96,mod)
+  gen_miller_loop(buffer_miller_output,p_g1_1,p_g2_1,mod)
   gen_memcopy(buffer_f12_function2,buffer_miller_output,48*12)
 
-  gen_return(buffer_miller_output, 48*12)
+  # G1 point (correct)
+  # gen_return(buffer_inputs, 96)
+
+  # G2 point (correct)
+  # gen_return(buffer_inputs + 96, SIZE_G2)
 
   # second miller loop
-  gen_miller_loop(buffer_miller_output,buffer_inputs,buffer_inputs+96,mod)
+  gen_miller_loop(buffer_miller_output,p_g1_2,p_g2_2,mod,gen_break=True)
+  
+  # output of second miller loop (correct)
+  # gen_return(buffer_miller_output, 48 * 12)
+
   gen_memcopy(buffer_f12_function,buffer_miller_output,48*12)
+
   # multiply the two miller loop outputs
   gen_f12mul_with_function_call(buffer_f12_function,buffer_f12_function,buffer_f12_function2,mod)
   # final exp
@@ -1972,41 +2026,6 @@ def gen_final_exponentiation_unrolled(out,in_,mod):
   gen_f12mul(y1,y1,y2,mod)
   gen_f12frobeniusmap(y2,y3,1,mod)
   gen_f12mul(out,y1,y2,mod)
-
-def gen_pairing_unrolled():
-  # not sure if these are correct anymore, but the worked at some point
-
-  print("#include \"inversemod_bls12381.huff\"")
-
-  # generate huff macro to initialize memory
-  print("#define macro INIT_MEM = takes(0) returns(0) {")
-  gen_consts(1)			# consts like the modulus, this is required
-  print("} // INIT_MEM")
-
-  # these are just some hard-coded inputs which may be useful for testing
-  print("#define macro FINAL_EXPONENTIATION_TEST_VALUES = takes(0) returns(0) {")
-  gen_final_exp_test_input()	# hard-code values for testing
-  print("} // FINAL_EXPONENTIATION_TEST_VALUES")
-  print("#define macro MILLER_LOOP_TEST_VALUES = takes(0) returns(0) {")
-  gen_miller_loop_test_input()	# hard-code values for testing
-  print("} // MILLER_LOOP_TEST_VALUES")
-
-  print("#define macro MILLER_LOOP = takes(0) returns(0) {")
-  gen_miller_loop_unrolled(buffer_miller_output,buffer_inputs,buffer_inputs+96,mod)
-  print("} // MILLER_LOOP")
-
-  print("#define macro FINAL_EXPONENTIATION = takes(0) returns(0) {")
-  # note: this fully unrolled final exponentiation stopped working, crashes huff, need to fix it
-  gen_final_exponentiation_unrolled(buffer_finalexp_output,buffer_miller_output,mod)
-  print("} // FINAL_EXPONENTIATION")
-
-  print("#define macro PAIRING_EQ2 = takes(0) returns(0) {")
-  print("} // PAIRING_EQ2")
-
-# unrolled pairing, for troubleshooting/debugging
-##################################################
-
-
 
 if __name__=="__main__":
   gen_pairing()

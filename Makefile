@@ -1,6 +1,6 @@
 all: build test
 
-test: test_evmone_evm384_bls12381_miller_loop test_pairing_eq2
+test: test_pairing_eq2
 
 build: build_bls12381 build_bls12381_miller_loop_test build_pairing_eq2_test
 
