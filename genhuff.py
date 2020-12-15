@@ -1577,7 +1577,7 @@ def gen_add_dbl_loop(out,T,Q,Px2,mod):
 10000000000000000
   """
 
-def gen_miller_loop(out,P,Q,mod,gen_break=False):
+def gen_miller_loop(out,P,Q,mod):
   # P is E1 point (affine), Q is E2 point (affine)
   PX = P
   PY = PX+48
@@ -1599,8 +1599,6 @@ def gen_miller_loop(out,P,Q,mod,gen_break=False):
   # execute
   gen_start_dbl(out,T,Px2,mod)
   gen_add_dbl_loop(out,T,Q,Px2,mod)
-  #if not gen_break:
-  #  gen_return(out, 12 * 48)
   gen_f12conjugate(out,mod)
 
 # Miller Loop
@@ -1782,21 +1780,18 @@ def gen_final_exponentiation_with_function_calls_optimized_mem_locations(out,in_
 
   gen_memcopy(b1,in_,48*12)
 
-  # note: hard-code in and out to both be same buffer
-  in_=b1
-  out=b1
-
   gen_f12inverse(b2,b1,mod)
   gen_f12conjugate(b1,mod)
   gen_f12mul_with_function_call(b1,b1,b2,mod)
   gen_f12frobeniusmap(b2,b1,2,mod)
   gen_f12mul_with_function_call(b1,b1,b2,mod)
-
+  
   #gen_memcopy(y0,b1,48*12)
   #gen_memcopy(y1,b1,48*12)
   gen_mergedmemcopy([y0,y1],b1,48*12)	# this is the above two memcopys but merged, to save bytecode size
 
   gen_f12sqrcyclotomic_loop_with_function_call(b1,b1,mod,1)
+
   gen_memcopy(y2,b1,48*12)
   gen_f12raise_to_z_with_function_calls(b1,b1,mod)
   gen_memcopy(y3,b1,48*12)
@@ -1822,17 +1817,25 @@ def gen_final_exponentiation_with_function_calls_optimized_mem_locations(out,in_
   gen_f12mul_with_function_call(b1,b1,y2,mod)
   gen_f12mul_with_function_call(b1,b1,y1,mod)
   gen_f12mul_with_function_call(b1,b1,y0,mod)
+
   gen_f12frobeniusmap(y1,y4,1,mod)
+
+
+
   gen_f12mul_with_function_call(b1,b1,y1,mod)
 
-  if out!=b1:
-    gen_memcopy(out,b1,48*12)
+  # correct
+  # gen_return(b1, 48 * 12)
 
   print("final_exp_done jump")
 
+  # incorrect
+  # gen_return(b1, 48 * 12)
+
   # generate the actual functions which for "function calls"
-  gen_f12mul_function(buffer_f12_function,buffer_f12_function2,mod)
-  gen_f12sqrcyclotomic_loop_function(buffer_f12_function,buffer_f12_function,mod)
+  gen_f12mul_function(b1,b2,mod)
+
+  gen_f12sqrcyclotomic_loop_function(b1,b1,mod)
 
   print("final_exp_done:")
 
@@ -1891,37 +1894,25 @@ def gen_pairing():
   print("#define macro PAIRING_EQ2 = takes(0) returns(0) {")
 
 
-  # G2 point (correct)
-  # gen_return(buffer_inputs + 96, SIZE_G2)
-
   # first miller loop
-  # gen_return(buffer_inputs, 48*12)
   gen_miller_loop(buffer_miller_output,p_g1_1,p_g2_1,mod)
   gen_memcopy(buffer_f12_function2,buffer_miller_output,48*12)
 
-  # G1 point (correct)
-  # gen_return(buffer_inputs, 96)
-
-  # G2 point (correct)
-  # gen_return(buffer_inputs + 96, SIZE_G2)
-
   # second miller loop
-  gen_miller_loop(buffer_miller_output,p_g1_2,p_g2_2,mod,gen_break=True)
+  gen_miller_loop(buffer_miller_output,p_g1_2,p_g2_2,mod)
   
-  # output of second miller loop (correct)
-  # gen_return(buffer_miller_output, 48 * 12)
-
   gen_memcopy(buffer_f12_function,buffer_miller_output,48*12)
 
   # multiply the two miller loop outputs
   gen_f12mul_with_function_call(buffer_f12_function,buffer_f12_function,buffer_f12_function2,mod)
+
   # final exp
   gen_final_exponentiation_with_function_calls_optimized_mem_locations(buffer_finalexp_output,buffer_f12_function,mod)
   # check if equals one
 
-  gen_equals(f12one,buffer_finalexp_output,12*48)
-  # gen_return(buffer_finalexp_output, 48*12)
-  # gen_return(f12one, 48*12)
+  gen_return(buffer_finalexp_output,12*48)
+
+  # gen_equals(f12one,buffer_finalexp_output,12*48)
   print("} // PAIRING_EQ2")
 
 # the main generators
