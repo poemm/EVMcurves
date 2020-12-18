@@ -91,34 +91,23 @@ def gen_mergedmemcopy(dst_offsets,src_offset,len_):
 ################
 # equality test
 
-def gen_equals(lhs,rhs,len_):
-  # this is untested
-  # note: should use sha3 instead, i.e. compare hash of each
+# store 0x000..01 in output if mem[lhs..lhs + len_] == mem[rhs..rh + len_] (look up endianess in eip)
+def gen_equals(output, lhs,rhs,len_):
   if len_<32:
     print("ERROR gen_equals() len_ is ",len_)
     return
-  print("// begin gen_equals length",len_)
-  print(0x00)	# default output, to be flipped based on equality check
-  while len_>32:
-    len_-=32
-    print(hex(lhs),end=" ")
-    print("mload",end=" ")
-    print(hex(rhs),end=" ")
-    print("mload",end=" ")
-    print("eq iszero",end=" ")
-    print("not_equals_end jumpi")
-    lhs+=32
-    rhs+=32
-  # final chunk, may have some overlap with previous chunk
-  print(hex(lhs-(32-len_)),end=" ")
-  print("mload",end=" ")
-  print(hex(rhs-(32-len_)),end=" ")
-  print("mload",end=" ")
-  print("eq iszero",end=" ")
-  print("not_equals_end jumpi")
-  print("iszero",end=" ")	# equals, flip top of stack to 1
-  print("not_equals_end:")
-  print("iszero",end=" ")	# flip top of stack
+
+  # gen_return(lhs, len_)
+  # gen_return(rhs, len_)
+
+  print("{} {} sha3".format(len_, lhs))
+  print("{} {} sha3".format(len_, rhs))
+  print("eq")
+  print(output)
+  # print("swap1")
+  print("mstore")
+
+  # if equal, store 0x000..01 in specified output
 
 # equality test
 ################
@@ -1790,6 +1779,10 @@ def gen_final_exponentiation_with_function_calls_optimized_mem_locations(out,in_
   #gen_memcopy(y1,b1,48*12)
   gen_mergedmemcopy([y0,y1],b1,48*12)	# this is the above two memcopys but merged, to save bytecode size
 
+  # note: hard-code in and out to both be same buffer
+  in_=b1
+  out=b1
+
   gen_f12sqrcyclotomic_loop_with_function_call(b1,b1,mod,1)
 
   gen_memcopy(y2,b1,48*12)
@@ -1824,13 +1817,10 @@ def gen_final_exponentiation_with_function_calls_optimized_mem_locations(out,in_
 
   gen_f12mul_with_function_call(b1,b1,y1,mod)
 
-  # correct
-  # gen_return(b1, 48 * 12)
+  if out!=b1:
+    gen_memcopy(out,b1,48*12)
 
   print("final_exp_done jump")
-
-  # incorrect
-  # gen_return(b1, 48 * 12)
 
   # generate the actual functions which for "function calls"
   gen_f12mul_function(b1,b2,mod)
@@ -1893,7 +1883,6 @@ def gen_pairing():
   # this is untested, but it has two miller loops, a f2mul, a final exponentiation, and an equality check
   print("#define macro PAIRING_EQ2 = takes(0) returns(0) {")
 
-
   # first miller loop
   gen_miller_loop(buffer_miller_output,p_g1_1,p_g2_1,mod)
   gen_memcopy(buffer_f12_function2,buffer_miller_output,48*12)
@@ -1908,11 +1897,11 @@ def gen_pairing():
 
   # final exp
   gen_final_exponentiation_with_function_calls_optimized_mem_locations(buffer_finalexp_output,buffer_f12_function,mod)
-  # check if equals one
+  gen_memcopy(buffer_finalexp_output, buffer_f12_function, 12 * 48)
 
-  gen_return(buffer_finalexp_output,12*48)
+  gen_equals(buffer_finalexp_output, f12one,buffer_finalexp_output,12*48)
+  gen_return(buffer_finalexp_output, 32)
 
-  # gen_equals(f12one,buffer_finalexp_output,12*48)
   print("} // PAIRING_EQ2")
 
 # the main generators
