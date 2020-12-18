@@ -97,17 +97,11 @@ def gen_equals(output, lhs,rhs,len_):
     print("ERROR gen_equals() len_ is ",len_)
     return
 
-  # gen_return(lhs, len_)
-  # gen_return(rhs, len_)
-
   print("{} {} sha3".format(len_, lhs))
   print("{} {} sha3".format(len_, rhs))
   print("eq")
   print(output)
-  # print("swap1")
   print("mstore")
-
-  # if equal, store 0x000..01 in specified output
 
 # equality test
 ################
@@ -1754,7 +1748,8 @@ def gen_final_exponentiation_with_function_calls(out,in_,mod):
   gen_f12mul_function(buffer_f12_function,buffer_f12_function2,mod)
   gen_f12sqrcyclotomic_loop_function(buffer_f12_function,buffer_f12_function,mod)
 
-def gen_final_exponentiation_with_function_calls_optimized_mem_locations(out,in_,mod):
+# input and output are hardcoded to be expected at buffer_f12_functionc
+def gen_final_exponentiation_with_function_calls_optimized_mem_locations(mod):
   y0 = buffer_finalexp
   y1 = y0+12*48
   y2 = y1+12*48
@@ -1767,8 +1762,6 @@ def gen_final_exponentiation_with_function_calls_optimized_mem_locations(out,in_
   b1=buffer_f12_function
   b2=buffer_f12_function2
 
-  gen_memcopy(b1,in_,48*12)
-
   gen_f12inverse(b2,b1,mod)
   gen_f12conjugate(b1,mod)
   gen_f12mul_with_function_call(b1,b1,b2,mod)
@@ -1778,10 +1771,6 @@ def gen_final_exponentiation_with_function_calls_optimized_mem_locations(out,in_
   #gen_memcopy(y0,b1,48*12)
   #gen_memcopy(y1,b1,48*12)
   gen_mergedmemcopy([y0,y1],b1,48*12)	# this is the above two memcopys but merged, to save bytecode size
-
-  # note: hard-code in and out to both be same buffer
-  in_=b1
-  out=b1
 
   gen_f12sqrcyclotomic_loop_with_function_call(b1,b1,mod,1)
 
@@ -1810,21 +1799,13 @@ def gen_final_exponentiation_with_function_calls_optimized_mem_locations(out,in_
   gen_f12mul_with_function_call(b1,b1,y2,mod)
   gen_f12mul_with_function_call(b1,b1,y1,mod)
   gen_f12mul_with_function_call(b1,b1,y0,mod)
-
   gen_f12frobeniusmap(y1,y4,1,mod)
-
-
-
   gen_f12mul_with_function_call(b1,b1,y1,mod)
-
-  if out!=b1:
-    gen_memcopy(out,b1,48*12)
 
   print("final_exp_done jump")
 
   # generate the actual functions which for "function calls"
   gen_f12mul_function(b1,b2,mod)
-
   gen_f12sqrcyclotomic_loop_function(b1,b1,mod)
 
   print("final_exp_done:")
@@ -1876,7 +1857,7 @@ def gen_pairing():
 
   # final exponentiation macro
   print("#define macro FINAL_EXPONENTIATION = takes(0) returns(0) {")
-  gen_final_exponentiation_with_function_calls_optimized_mem_locations(buffer_finalexp_output,buffer_miller_output,mod)
+  gen_final_exponentiation_with_function_calls_optimized_mem_locations(mod)
   print("} // FINAL_EXPONENTIATION")
 
   # pairing equation with two pairings, using the multi-pairing trick so only one final exponentiation
@@ -1896,7 +1877,7 @@ def gen_pairing():
   gen_f12mul_with_function_call(buffer_f12_function,buffer_f12_function,buffer_f12_function2,mod)
 
   # final exp
-  gen_final_exponentiation_with_function_calls_optimized_mem_locations(buffer_finalexp_output,buffer_f12_function,mod)
+  gen_final_exponentiation_with_function_calls_optimized_mem_locations(mod)
   gen_memcopy(buffer_finalexp_output, buffer_f12_function, 12 * 48)
 
   gen_equals(buffer_finalexp_output, f12one,buffer_finalexp_output,12*48)
