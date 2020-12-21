@@ -15,8 +15,9 @@
 
 
 
-SIZE_G2 = 192 # 2x SIZE_G1 or special for bls12_381?
-SIZE_G1 = 96
+SIZE_F1 = 48
+SIZE_E1 = SIZE_F1 * 2
+SIZE_E2 = SIZE_E1 * 2
 
 def gen_return(offset, length):
   print("{} {} return".format(length, offset))
@@ -1359,9 +1360,9 @@ def gen_Edouble__dbl_2009_l(f,XYZout,XYZ,mod):
 
 
 p_g1_1 = buffer_inputs
-p_g2_1 = buffer_inputs + SIZE_G1
-p_g1_2 = buffer_inputs + SIZE_G1 + SIZE_G2
-p_g2_2 = buffer_inputs + SIZE_G1 + SIZE_G2 + SIZE_G1
+p_g2_1 = p_g1_1 + SIZE_E1
+p_g1_2 = p_g2_1 + SIZE_E2 
+p_g2_2 = p_g1_2 + SIZE_E1
 
 ###########
 # Pairing #
@@ -1371,6 +1372,7 @@ def gen_pairing_eq2_test_input():
     # G1 generator (montgomery):
     input_val = bytearray.fromhex("120177419e0bfb75edce6ecc21dbf440f0ae6acdf3d0e747154f95c7143ba1c17817fc679976fff55cb38790fd530c16")[::-1]
     input_val += bytearray.fromhex("0bbc3efc5008a26a0e1c8c3fad0059c051ac582950405194dd595f13570725ce8c22631a7918fd8ebaac93d50ce72271")[::-1]
+
     gen_memstore(p_g1_1,input_val)
 
     # G2 generator (montgomery):
@@ -1390,7 +1392,7 @@ def gen_pairing_eq2_test_input():
     input_val += bytearray.fromhex("11922a097360edf3c2b6ed0ef21585471b1ab6cc8541b3673bb17e18e2867806aaa0c59dbccd60c3a5a9c0759e23f606")[::-1] 
     input_val += bytearray.fromhex("0083fd8e7e80dae507d3a975f0ef25a2bbefb5e96e0d495fe7e6856caa0a635a597cfa1f5e369c5a4c730af860494c4a")[::-1] 
     input_val += bytearray.fromhex("0b2bc2a163de1bf2e7175850a43ccaed79495c4ec93da33a86adac6a3be4eba018aa270a2b1461dcadc0fc92df64b05d")[::-1] 
-    gen_memstore(p_g1_1,input_val)
+    gen_memstore(p_g2_2,input_val)
 
 
 ##############
@@ -1573,12 +1575,14 @@ def gen_miller_loop(out,P,Q,mod):
   Px2 = T+288			# E1 point (affine)
   Px2X = Px2
   Px2Y = Px2+48
+
   # prepare some stuff
   gen_f1add(Px2X,PX,PX,mod)
   gen_f1neg(Px2X,Px2X,mod)
   gen_f1add(Px2Y,PY,PY,mod)
   gen_memcopy(TX,QX,192)
   gen_memcopy(TZ,f12one,96)
+
   # execute
   gen_start_dbl(out,T,Px2,mod)
   gen_add_dbl_loop(out,T,Q,Px2,mod)
@@ -1870,7 +1874,6 @@ def gen_pairing():
 
   # second miller loop
   gen_miller_loop(buffer_miller_output,p_g1_2,p_g2_2,mod)
-  
   gen_memcopy(buffer_f12_function,buffer_miller_output,48*12)
 
   # multiply the two miller loop outputs
