@@ -10,3 +10,6 @@
 [submodule "go-ethereum"]
 	path = go-ethereum
 	url = https://github.com/jwasinger/go-ethereum
+[submodule "go-ethereum-purego"]
+	path = go-ethereum-purego
+	url = https://github.com/jwasinger/go-ethereum

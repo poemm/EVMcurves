@@ -1,14 +1,11 @@
 all: build test
 
-test: test_evmone
+test: test_geth_purego
 
-build: build_bls12381 build_bls12381_miller_loop_test build_pairing_eq2_test
+build: build_bls12381 build_pairing_eq2_test
 
 build_bls12381:
 	python3 genhuff.py > bls12_381.huff
-
-build_bls12381_miller_loop_test:
-	node compile.js MILLER_LOOP_TEST_HARD_CODED > bls12381_miller_loop_test.hex
 
 build_bls12381_final_exp_test:
 	node compile.js FINAL_EXPONENTIATION_TEST_HARD_CODED > bls12381_final_exp_test.hex
@@ -23,5 +20,8 @@ test_evmone_evm384_bls12381_miller_loop:
 test_evmone:
 	./run_evmone_bench.sh bls12381_pairing_eq2_test.hex 0000000000000000000000000000000000000000000000000000000000000001
 
-test_geth:
+test_geth_goasm:
 	./go-ethereum/build/bin/evm --statdump --codefile bls12381_pairing_eq2_test.hex run
+
+test_geth_purego:
+	./go-ethereum-purego/build/bin/evm --statdump --codefile bls12381_pairing_eq2_test.hex run
