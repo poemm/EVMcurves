@@ -7,3 +7,6 @@
 [submodule "blst"]
 	path = blst
 	url = https://github.com/jwasinger/blst
+[submodule "go-ethereum"]
+	path = go-ethereum
+	url = https://github.com/jwasinger/go-ethereum
