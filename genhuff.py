@@ -1871,17 +1871,9 @@ def gen_pairing():
   # this is untested, but it has two miller loops, a f2mul, a final exponentiation, and an equality check
   print("#define macro PAIRING_EQ2 = takes(0) returns(0) {")
 
-  # gen_logf(p_g1_1, 48, 2)
-  # gen_logf(p_g2_1, 48, 4)
-  # gen_logf(p_g1_2, 48, 2)
-  # gen_logf(p_g2_2, 48, 4)
-
   # first miller loop
   gen_miller_loop(buffer_miller_output,p_g1_1,p_g2_1,mod)
-  # gen_logf(buffer_miller_output, 48, 12)
   gen_memcopy(buffer_f12_function2,buffer_miller_output,48*12)
-
-  gen_logf(buffer_f12_function2, 48, 12)
 
   # second miller loop
   gen_miller_loop(buffer_miller_output,p_g1_2,p_g2_2,mod)
@@ -1894,7 +1886,6 @@ def gen_pairing():
   gen_final_exponentiation_with_function_calls_optimized_mem_locations(mod)
   gen_memcopy(buffer_finalexp_output, buffer_f12_function, 12 * 48)
 
-  gen_logf(buffer_finalexp_output, 48, 12)
   gen_equals(buffer_finalexp_output, f12one,buffer_finalexp_output,12*48)
   gen_return(buffer_finalexp_output, 32)
 
