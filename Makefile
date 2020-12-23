@@ -1,6 +1,6 @@
 all: build test
 
-test: test_geth_purego
+test: test_geth_purego test_geth_goasm test_evmone
 
 build: build_bls12381 build_pairing_eq2_test
 
