@@ -1371,6 +1371,34 @@ p_g2_2 = p_g1_2 + SIZE_E1
 # Pairing #
 ###########
 
+# test e(p, q * 2) * e(p, -q * 2) == 1
+# TODO fix this test case
+def gen_pairing_eq2_test_input_2():
+    # G1 generator (montgomery):
+    input_val = bytearray.fromhex("120177419e0bfb75edce6ecc21dbf440f0ae6acdf3d0e747154f95c7143ba1c17817fc679976fff55cb38790fd530c16")[::-1]
+    input_val += bytearray.fromhex("0bbc3efc5008a26a0e1c8c3fad0059c051ac582950405194dd595f13570725ce8c22631a7918fd8ebaac93d50ce72271")[::-1]
+    gen_memstore(p_g1_1,input_val)
+
+    # G2_gen * 2 
+    input_val =  bytearray.fromhex("0df8609d42969a334d8d60b3075d9489c105a4609b25ba74120ae146d6804e3afd6a011a9a9eba835caed892f5cf8719")[::-1]
+    input_val += bytearray.fromhex("091c50f1fd99d478476d1d992171f86cb5e4363e88a1e00b9f44417efd4831e946ab41b55de3008c0e3c964e6fd69082")[::-1]
+    input_val += bytearray.fromhex("00ce7c8d79d63421c4e8254ea56304526abf3c45a8d943061bfbb27fd3720da093826f30f0242b966ac2fdb8d9c83987")[::-1]
+    input_val += bytearray.fromhex("0431a6a8d4fef5f86504a59c01d64cce77bd3da80b21321d39208efe09e29c8d5a8233ece6d7150b5660fecd110f22a9")[::-1]
+    gen_memstore(p_g2_1,input_val)
+
+    # G1 generator 
+    input_val =  bytearray.fromhex("120177419e0bfb75edce6ecc21dbf440f0ae6acdf3d0e747154f95c7143ba1c17817fc679976fff55cb38790fd530c16")[::-1]
+    input_val += bytearray.fromhex("0bbc3efc5008a26a0e1c8c3fad0059c051ac582950405194dd595f13570725ce8c22631a7918fd8ebaac93d50ce72271")[::-1]
+    gen_memstore(p_g1_2,input_val)
+
+    # -G2_gen * 2 
+    input_val =  bytearray.fromhex("0df8609d42969a334d8d60b3075d9489c105a4609b25ba74120ae146d6804e3afd6a011a9a9eba835caed892f5cf8719")[::-1]
+    input_val += bytearray.fromhex("091c50f1fd99d478476d1d992171f86cb5e4363e88a1e00b9f44417efd4831e946ab41b55de3008c0e3c964e6fd69082")[::-1]
+    input_val += bytearray.fromhex("15cf6b416480f0a1e617021a41756008ecba0ddce863e0a22e1043a2ecce5996c429cc11ca7ceaf4639e0132eef08802")[::-1]
+    input_val += bytearray.fromhex("1932955cbfa9b278863382679de8a884f9b80f3f4aabcfb94b352021233ee8838b2990cdc12fd4694f3c024726377124")[::-1]
+    gen_memstore(p_g2_2,input_val)
+
+# "naive" pairingEq2 test: e(p, q) * e(-p, q) == 1
 def gen_pairing_eq2_test_input():
     # G1 generator (montgomery):
     input_val = bytearray.fromhex("120177419e0bfb75edce6ecc21dbf440f0ae6acdf3d0e747154f95c7143ba1c17817fc679976fff55cb38790fd530c16")[::-1]
