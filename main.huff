@@ -1,76 +1,7 @@
 #include "bls12_381.huff"
 
-
-
-#define macro MILLER_LOOP_CONTRACT = takes(0) returns(0) {
-  // read calldata
-  576 0 15416 calldatacopy	// copy calldata with stack (rightmost is top): length calldataoffset memoryoffset
-
-  INIT_MEM()
-
-  MILLER_LOOP()
-
-  // write returndata
-  576 0 return	// return 576 bytes started at hard-coded position 0
-}
-
-
-
-#define macro FINAL_EXPONENTIATION_CONTRACT = takes(0) returns(0) {
-  // read calldata
-  576 0 0 calldatacopy	// copy calldata with stack (rightmost is top): length calldataoffset memoryoffset
-
-  INIT_MEM()
-
-  FINAL_EXPONENTIATION()
-
-  // write returndata
-  576 0 return	// return 576 bytes started at hard-coded position 0
-}
-
-
-
-#define macro MILLER_LOOP_TEST_HARD_CODED = takes(0) returns(0) {
-  INIT_MEM()
-
-  MILLER_LOOP_TEST_VALUES()
-  MILLER_LOOP()
-
-  576 10664 return // return the miller loop result hard-coded at position 10664
-}
-
-
-
-#define macro FINAL_EXPONENTIATION_TEST_HARD_CODED = takes(0) returns(0) {
-  INIT_MEM()
-
-  FINAL_EXPONENTIATION_TEST_VALUES()
-  FINAL_EXPONENTIATION()
-
-  // write returndata
-  576 0 return	// return 576 bytes started at hard-coded position 0
-}
-
-
 #define macro PAIRING_EQ2_TEST = takes(0) returns(0) {
   INIT_MEM()
-  PAIRING_EQ2_TEST_VALUES()
 
   PAIRING_EQ2()
-
-  1 0 return	// return 1 bytes started at hard-coded position 0
 }
-
-#define macro PAIRING_DEBUGGING = takes(0) returns(0) {
-  // test stuff by uncommenting here
-  INIT_MEM()
-
-  MILLER_LOOP_TEST_VALUES()
-  MILLER_LOOP()
-  FINAL_EXPONENTIATION()
-
-  //PAIRING_EQ2()
-
-  576 0 return	// return 576 bytes started at hard-coded position 0
-}
-

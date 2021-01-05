@@ -495,39 +495,17 @@ def gen_consts(miller_loop_flag):
   p = "89f3fffcfffcfffd1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab"
   gen_memstore(mod,bytes.fromhex(p)[::-1])
 
-def gen_pairing():
+def gen_pairing_deps():
   print("#include \"inversemod_bls12381.huff\"")
-
   # init memory with consts like the modulus
   print("#define macro INIT_MEM = takes(0) returns(0) {")
   gen_consts(1)	
   print("} // INIT_MEM")
 
-  # these are just some hard-coded inputs which may be useful for testing
-  print("#define macro MILLER_LOOP_TEST_VALUES = takes(0) returns(0) {")
-  gen_miller_loop_test_input()	# hard-code values for testing
-  print("} // MILLER_LOOP_TEST_VALUES")
-  print("#define macro PAIRING_EQ2_TEST_VALUES = takes(0) returns(0) {")
-  gen_pairing_eq2_test_input()	# hard-code values for testing
-  print("} // MILLER_LOOP_TEST_VALUES")
-  print("#define macro FINAL_EXPONENTIATION_TEST_VALUES = takes(0) returns(0) {")
-  gen_final_exp_test_input()	# hard-code values for testing
-  print("} // FINAL_EXPONENTIATION_TEST_VALUES")
-
-  # miller loop macro
-  print("#define macro MILLER_LOOP = takes(0) returns(0) {")
-  #gen_consts(1)			# consts like the modulus, this is required
-  gen_miller_loop(buffer_miller_output,buffer_inputs,buffer_inputs+96,mod)
-  print("} // MILLER_LOOP")
-
-  # final exponentiation macro
-  print("#define macro FINAL_EXPONENTIATION = takes(0) returns(0) {")
-  gen_final_exponentiation_with_function_calls_optimized_mem_locations(mod)
-  print("} // FINAL_EXPONENTIATION")
-
-  # pairing equation with two pairings, using the multi-pairing trick so only one final exponentiation
-  # this is untested, but it has two miller loops, a f2mul, a final exponentiation, and an equality check
+def gen_pairing_eq2():
   print("#define macro PAIRING_EQ2 = takes(0) returns(0) {")
+
+  gen_deserialize_pairing_input(2)
 
   # first miller loop
   gen_miller_loop(buffer_miller_output,p_g1_1,p_g2_1,mod)
@@ -548,6 +526,52 @@ def gen_pairing():
   gen_return(buffer_finalexp_output, 32)
 
   print("} // PAIRING_EQ2")
+
+def gen_pairing_eq1():
+  print("#define macro PAIRING_EQ2 = takes(0) returns(0) {")
+
+  gen_deserialize_pairing_input(1)
+
+  # first miller loop
+  gen_miller_loop(buffer_miller_output,p_g1_1,p_g2_1,mod)
+  gen_memcopy(buffer_f12_function,buffer_miller_output,48*12)
+
+  # final exp
+  gen_final_exponentiation_with_function_calls_optimized_mem_locations(mod)
+  gen_memcopy(buffer_finalexp_output, buffer_f12_function, 12 * 48)
+
+  gen_equals(buffer_finalexp_output, f12one,buffer_finalexp_output,12*48)
+  gen_return(buffer_finalexp_output, 32)
+
+def gen_deserialize_pairing_input(num_pairings: int):
+    calldata_offset = 0
+
+    if num_pairings == 1:
+        gen_calldatacopy(p_g1_1, calldata_offset, SIZE_G1)
+        calldata_offset += SIZE_G1
+        gen_calldatacopy(p_g2_1, calldata_offset, SIZE_G2)
+        calldata_offset += SIZE_G2
+    elif num_pairings == 2:
+        gen_calldatacopy(p_g1_1, calldata_offset, SIZE_G1)
+        calldata_offset += SIZE_G1
+        gen_calldatacopy(p_g2_1, calldata_offset, SIZE_G2)
+        calldata_offset += SIZE_G2
+
+        gen_calldatacopy(p_g1_2, calldata_offset, SIZE_G1)
+        calldata_offset += SIZE_G1
+        gen_calldatacopy(p_g2_2, calldata_offset, SIZE_G2)
+        calldata_offset += SIZE_G2
+    else:
+        raise Exception("num_pairings must be either 1 or 2")
+
+def gen_pairing(n: int):
+  gen_pairing_deps()
+  if n == 1:
+    gen_pairing_eq1()
+  elif n == 2:
+    gen_pairing_eq2()
+  else:
+    raise Exception("num_pairings must be 1 or 2")
 
 # the main generators
 ######################

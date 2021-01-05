@@ -3,9 +3,11 @@ SIZE_F1 = 48
 
 # Size of a curve point for elements in G1
 SIZE_E1 = SIZE_F1 * 2
+SIZE_G1 = SIZE_F1 * 2
 
 # Size of a curve point for elements in G2
 SIZE_E2 = SIZE_E1 * 2
+SIZE_G2 = SIZE_G1 * 2
 
 addmod384_count=0
 submod384_count=0
@@ -25,6 +27,9 @@ def gen_return(offset, length):
 
 def gen_logf(offset, field_size, num_elems):
   print("{} {} {} logf".format(offset, field_size, num_elems))
+
+def gen_calldatacopy(out_offset, src_offset, n_bytes):
+    print("{} {} {} calldatacopy".format(n_bytes, src_offset, out_offset))
 
 def gen_memstore(dst_offset,bytes_):
   idx = 0
