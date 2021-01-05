@@ -5,7 +5,7 @@ test: test_geth_purego test_geth_goasm test_evmone
 build: build_bls12381 build_pairing_eq2_test
 
 build_bls12381:
-	python3 genhuff.py > bls12_381.huff
+	python3 generator/generate.py > bls12_381.huff
 
 build_bls12381_final_exp_test:
 	node compile.js FINAL_EXPONENTIATION_TEST_HARD_CODED > bls12381_final_exp_test.hex
