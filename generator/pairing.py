@@ -503,7 +503,7 @@ def gen_pairing_deps():
   print("} // INIT_MEM")
 
 def gen_pairing_eq2():
-  print("#define macro PAIRING_EQ2 = takes(0) returns(0) {")
+  print("#define macro PAIRING_EQ2 = takes(0) returns(0) {\nINIT_MEM()\n")
 
   gen_deserialize_pairing_input(2)
 
@@ -528,17 +528,26 @@ def gen_pairing_eq2():
   print("} // PAIRING_EQ2")
 
 def gen_pairing_eq1():
-  print("#define macro PAIRING_EQ1 = takes(0) returns(0) {")
+  print("#define macro PAIRING_EQ1 = takes(0) returns(0) {\nINIT_MEM()\n")
 
   gen_deserialize_pairing_input(1)
+
+  gen_logf(p_g1_1, 48, 2)
+  gen_logf(p_g2_1, 48, 4)
 
   # first miller loop
   gen_miller_loop(buffer_miller_output,p_g1_1,p_g2_1,mod)
   gen_memcopy(buffer_f12_function,buffer_miller_output,48*12)
 
+  gen_logf(buffer_f12_function, 48, 12)
+
+
   # final exp
   gen_final_exponentiation_with_function_calls_optimized_mem_locations(mod)
   gen_memcopy(buffer_finalexp_output, buffer_f12_function, 12 * 48)
+
+  gen_logf(f12one, 48, 12)
+  gen_logf(buffer_finalexp_output, 48, 12)
 
   gen_equals(buffer_finalexp_output, f12one,buffer_finalexp_output,12*48)
   gen_return(buffer_finalexp_output, 32)
