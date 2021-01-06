@@ -1,7 +1,7 @@
 #include "bls12_381.huff"
 
-#define macro PAIRING_EQ2_TEST = takes(0) returns(0) {
+#define macro PAIRING_EQ1_TEST = takes(0) returns(0) {
   INIT_MEM()
 
-  PAIRING_EQ2()
+  PAIRING_EQ1()
 }

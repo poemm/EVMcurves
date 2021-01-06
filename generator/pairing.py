@@ -528,7 +528,7 @@ def gen_pairing_eq2():
   print("} // PAIRING_EQ2")
 
 def gen_pairing_eq1():
-  print("#define macro PAIRING_EQ2 = takes(0) returns(0) {")
+  print("#define macro PAIRING_EQ1 = takes(0) returns(0) {")
 
   gen_deserialize_pairing_input(1)
 
@@ -542,6 +542,7 @@ def gen_pairing_eq1():
 
   gen_equals(buffer_finalexp_output, f12one,buffer_finalexp_output,12*48)
   gen_return(buffer_finalexp_output, 32)
+  print("} // PAIRING_EQ1")
 
 def gen_deserialize_pairing_input(num_pairings: int):
     calldata_offset = 0
@@ -549,8 +550,10 @@ def gen_deserialize_pairing_input(num_pairings: int):
     if num_pairings == 1:
         gen_calldatacopy(p_g1_1, calldata_offset, SIZE_G1)
         calldata_offset += SIZE_G1
+        gen_logf(p_g1_1, SIZE_F1, 2)
         gen_calldatacopy(p_g2_1, calldata_offset, SIZE_G2)
         calldata_offset += SIZE_G2
+        gen_logf(p_g2_1, SIZE_F1, 4)
     elif num_pairings == 2:
         gen_calldatacopy(p_g1_1, calldata_offset, SIZE_G1)
         calldata_offset += SIZE_G1

@@ -30,6 +30,7 @@ def gen_logf(offset, field_size, num_elems):
 
 def gen_calldatacopy(out_offset, src_offset, n_bytes):
     print("{} {} {} calldatacopy".format(n_bytes, src_offset, out_offset))
+    # print("{} {} {} calldatacopy".format(out_offset, src_offset, n_bytes))
 
 def gen_memstore(dst_offset,bytes_):
   idx = 0
