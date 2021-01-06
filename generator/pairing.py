@@ -567,7 +567,7 @@ def gen_deserialize_pairing_input(num_pairings: int):
     else:
         raise Exception("num_pairings must be either 1 or 2")
 
-def gen_pairing(n: int):
+def gen_pairing_eqn_huff(n: int):
   gen_pairing_deps()
   if n == 1:
     gen_pairing_eq1()
