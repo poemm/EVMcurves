@@ -1,0 +1,23 @@
+{
+  "name": "evm-curves",
+  "version": "0.0.1",
+  "description": "an implementation of pairings on bls12381 using EVM384",
+  "main": "compile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jwasinger/evm-curves.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jwasinger/evm-curves/issues"
+  },
+  "homepage": "https://github.com/jwasinger/evm-curves#readme",
+  "dependencies": {
+    "@aztec/huff": "git+https://github.com/jwasinger/huff.git#evm384-v7-logf"
+  }
+}

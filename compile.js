@@ -1,8 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 
-const { compiler } = require('./huff/src');
-const parser = require('./huff/src/parser');
+const { compiler, parser } = require('@aztec/huff');
 
 const pathToData = path.posix.resolve(__dirname, './');
 

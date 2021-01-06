@@ -1,6 +1,3 @@
-[submodule "huff"]
-	path = huff
-	url = https://github.com/jwasinger/huff
 [submodule "evmone"]
 	path = evmone
 	url = https://github.com/jwasinger/evmone
