@@ -1,11 +1,19 @@
 all: build test
 
-test: test_geth_purego test_geth_goasm test_evmone
+test: test_miller_loop
 
-build: build_dir build_bls12381_pairing_eq_contracts
+build: build_dir build_miller_loop_test
 
 build_dir:
 	rm -rf build && mkdir build
+
+build_miller_loop_test:
+	cp inversemod_bls12381.huff build/
+	python3 genhuff.py miller_loop > build/bls12381_miller_loop.huff
+	node compile.js bls12381_miller_loop.huff MILLER_LOOP_TEST > build/bls12381_miller_loop.hex
+
+test_miller_loop:
+	./test_geth.sh build/bls12381_miller_loop.hex tests/miller_loop1
 
 build_bls12381_pairing_eq_contracts:
 	cp inversemod_bls12381.huff build/
