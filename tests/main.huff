@@ -29,3 +29,27 @@
 }
 
 
+
+#define macro MILLER_LOOP_TEST_HARD_CODED = takes(0) returns(0) {
+  INIT_MEM()
+
+  MILLER_LOOP_TEST_VALUES()
+  MILLER_LOOP()
+
+  // write returndata
+  576 0 return	// return 576 bytes started at hard-coded position 0
+}
+
+
+
+#define macro FINAL_EXPONENTIATION_TEST_HARD_CODED = takes(0) returns(0) {
+  INIT_MEM()
+
+  FINAL_EXPONENTIATION_TEST_VALUES()
+  FINAL_EXPONENTIATION()
+
+  // write returndata
+  576 0 return	// return 576 bytes started at hard-coded position 0
+}
+
+
