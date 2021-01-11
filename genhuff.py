@@ -1760,14 +1760,15 @@ def gen_deserialize_miller_loop_input():
     gen_calldatacopy(p_g2_1, calldata_offset, SIZE_G2)
     calldata_offset += SIZE_G2
 
+# i think final exp has an f12 element as input
 def gen_deserialize_final_exp_input():
-    pass
+    gen_calldatacopy(p_g1_1, 0, SIZE_F1 * 12)
 
 def gen_return(offset, length):
   print("{} {} return".format(length, offset))
 
 def gen_miller_loop_test():
-    # gen_include_inversemodhuff()
+    gen_include_inversemodhuff()
     # miller loop macro
     print("#define macro MILLER_LOOP_TEST = takes(0) returns(0) {")
     gen_consts(1)
@@ -1777,11 +1778,13 @@ def gen_miller_loop_test():
     print("} // MILLER_LOOP")
 
 def gen_final_exp_test():
-    gen_pairing_deps()
-
+    gen_include_inversemodhuff()
     # final exponentiation macro
-    print("#define macro FINAL_EXPONENTIATION = takes(0) returns(0) {")
+    print("#define macro FINAL_EXP_TEST = takes(0) returns(0) {")
+    gen_consts(1)
+    gen_deserialize_final_exp_input()
     gen_final_exponentiation_with_function_calls_optimized_mem_locations(buffer_finalexp_output,buffer_miller_output,mod)
+    gen_return(buffer_finalexp_output,48* 12)
     print("} // FINAL_EXPONENTIATION")
 
 def main():

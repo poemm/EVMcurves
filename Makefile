@@ -1,8 +1,8 @@
 all: build test
 
-test: test_miller_loop
+test: test_miller_loop test_final_exp
 
-build: build_dir build_miller_loop_test
+build: build_dir build_miller_loop_test build_final_exp_test
 
 build_dir:
 	rm -rf build && mkdir build
@@ -12,8 +12,16 @@ build_miller_loop_test:
 	python3 genhuff.py miller_loop > build/bls12381_miller_loop.huff
 	node compile.js bls12381_miller_loop.huff MILLER_LOOP_TEST > build/bls12381_miller_loop.hex
 
+build_final_exp_test:
+	cp inversemod_bls12381.huff build/
+	python3 genhuff.py final_exp > build/bls12381_final_exp.huff
+	node compile.js bls12381_final_exp.huff FINAL_EXP_TEST > build/bls12381_final_exp.hex
+
 test_miller_loop:
 	./test_geth.sh build/bls12381_miller_loop.hex tests/miller_loop1
+
+test_final_exp:
+	./test_geth.sh build/bls12381_final_exp.hex tests/final_exp1
 
 build_bls12381_pairing_eq_contracts:
 	cp inversemod_bls12381.huff build/
