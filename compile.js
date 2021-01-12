@@ -13,5 +13,5 @@ var arg = process.argv[2];
 const {
     data: { bytecode: macroCode },
 } = parser.processMacro(arg, 0, [], macros, inputMap, jumptables);
-console.log("0x"+macroCode)
+console.log(macroCode)
 

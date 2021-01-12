@@ -4,14 +4,14 @@
 
 #define macro MILLER_LOOP_CONTRACT = takes(0) returns(0) {
   // read calldata
-  576 0 15416 calldatacopy	// copy calldata with stack (rightmost is top): length calldataoffset memoryoffset
+  288 0 15416 calldatacopy	// copy calldata with stack (rightmost is top): length calldataoffset memoryoffset
 
   INIT_MEM()
 
   MILLER_LOOP()
 
   // write returndata
-  576 0 return	// return 576 bytes started at hard-coded position 0
+  576 0 return	// stack is (rightmost is top): length memoryoffset
 }
 
 
@@ -25,7 +25,7 @@
   FINAL_EXPONENTIATION()
 
   // write returndata
-  576 0 return	// return 576 bytes started at hard-coded position 0
+  576 0 return	// stack is (rightmost is top): length memoryoffset
 }
 
 

@@ -1586,12 +1586,14 @@ def gen_pairing():
 
   # miller loop macro
   print("#define macro MILLER_LOOP = takes(0) returns(0) {")
-  gen_miller_loop(buffer_miller_output,buffer_inputs,buffer_inputs+96,mod)
+  #gen_miller_loop(buffer_miller_output,buffer_inputs,buffer_inputs+96,mod)
+  gen_miller_loop(0,buffer_inputs,buffer_inputs+96,mod)
+  #gen_miller_loop(buffer_miller_output,0,96,mod)
   print("} // MILLER_LOOP")
 
   # final exponentiation macro
   print("#define macro FINAL_EXPONENTIATION = takes(0) returns(0) {")
-  gen_final_exponentiation_with_function_calls_optimized_mem_locations(buffer_finalexp_output,buffer_miller_output,mod)
+  gen_final_exponentiation_with_function_calls_optimized_mem_locations(0,0,mod)
   print("} // FINAL_EXPONENTIATION")
 
 # the main generators
@@ -1700,20 +1702,12 @@ def gen_final_exponentiation_unrolled(out,in_,mod):
 def gen_pairing_unrolled():
   # not sure if these are correct anymore, but the worked at some point
 
-  print("#include \"inversemod_bls12381.huff\"")
+  print("#include \"inversemod/inversemod_bls12381.huff\"")
 
   # generate huff macro to initialize memory
   print("#define macro INIT_MEM = takes(0) returns(0) {")
   gen_consts(1)			# consts like the modulus, this is required
   print("} // INIT_MEM")
-
-  # these are just some hard-coded inputs which may be useful for testing
-  print("#define macro FINAL_EXPONENTIATION_TEST_VALUES = takes(0) returns(0) {")
-  gen_final_exp_test_input()	# hard-code values for testing
-  print("} // FINAL_EXPONENTIATION_TEST_VALUES")
-  print("#define macro MILLER_LOOP_TEST_VALUES = takes(0) returns(0) {")
-  gen_miller_loop_test_input()	# hard-code values for testing
-  print("} // MILLER_LOOP_TEST_VALUES")
 
   print("#define macro MILLER_LOOP = takes(0) returns(0) {")
   gen_miller_loop_unrolled(buffer_miller_output,buffer_inputs,buffer_inputs+96,mod)
