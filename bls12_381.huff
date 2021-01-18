@@ -1,4 +1,4 @@
-#include "inversemod_bls12381.huff"
+#include "inversemod/inversemod_bls12381.huff"
 #define macro INIT_MEM = takes(0) returns(0) {
 0xfdff02000000097602000cc40b00f4ebba58c7535798485f455752705358ce77 0x6c0 mstore
 0xba58c7535798485f455752705358ce776dec56a2971a075c93e480fac35ef615 0x6d0 mstore

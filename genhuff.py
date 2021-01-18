@@ -1577,7 +1577,7 @@ def gen_consts(miller_loop_flag):
   gen_memstore(mod,bytes.fromhex(p)[::-1])
 
 def gen_pairing():
-  print("#include \"inversemod_bls12381.huff\"")
+  print("#include \"inversemod/inversemod_bls12381.huff\"")
 
   # init memory with consts like the modulus, this is required
   print("#define macro INIT_MEM = takes(0) returns(0) {")
