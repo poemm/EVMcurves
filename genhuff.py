@@ -34,24 +34,33 @@ def gen_memstore(dst_offset,bytes_):
   print(hex(dst_offset+len(bytes_[idx:])-32),end=' ')
   print("mstore")
 
-def gen_memcopy(dst_offset,src_offset,len_):
-  if len_<32:
-    print("ERROR gen_memcopy() len_ is ",len_)
-    return
-  print("// begin memcopy length",len_)
-  while len_>32:
-    len_-=32
+def gen_memcopy(dst_offset,src_offset,len_,mod):
+  if 1: # just use addmodmont for mcopy, but this only works if the values are in the field, i.e. less than mod
+    for i in range(len_//48):
+      gen_f1add(dst_offset+i*48,src_offset+i*48,zero,mod)
+  elif 1: # use expiremental MCOPY opcode
     print(hex(src_offset),end=" ")
-    print("mload",end=" ")
     print(hex(dst_offset),end=" ")
-    print("mstore",end=" ")
-    src_offset+=32
-    dst_offset+=32
-  # final chunk, may have some overlap with previous chunk
-  print(hex(src_offset-(32-len_)),end=" ")
-  print("mload",end=" ")
-  print(hex(dst_offset-(32-len_)),end=" ")
-  print("mstore")
+    print(hex(len_),end=" ")
+    print("mcopy")
+  else:
+    if len_<32:
+      print("ERROR gen_memcopy() len_ is ",len_)
+      return
+    print("// begin memcopy length",len_)
+    while len_>32:
+      len_-=32
+      print(hex(src_offset),end=" ")
+      print("mload",end=" ")
+      print(hex(dst_offset),end=" ")
+      print("mstore",end=" ")
+      src_offset+=32
+      dst_offset+=32
+    # final chunk, may have some overlap with previous chunk
+    print(hex(src_offset-(32-len_)),end=" ")
+    print("mload",end=" ")
+    print(hex(dst_offset-(32-len_)),end=" ")
+    print("mstore")
 
 def gen_mergedmemcopy(dst_offsets,src_offset,len_):
   if len_<32:
@@ -196,14 +205,25 @@ mem_offsets = {
 # Argument packing
 
 # pack offsets into stack item
-def gen_evm384_offsets(a,b,c,d):
-  # Each EVM384v7 opcode is preceeded with a PUSH16 with packed memory offsets
-  print("0x"+hex(a)[2:].zfill(8)+hex(b)[2:].zfill(8)+hex(c)[2:].zfill(8)+hex(d)[2:].zfill(8), end=' ')
+def gen_offsets(a,b,c,d,e):
+  # Each *MODMONT opcode is followed by a PUSH9 with numwords and packed memory offsets
+  e_ = e.to_bytes(1, byteorder='little').hex()
+  a_ = a.to_bytes(2, byteorder='little').hex()
+  b_ = b.to_bytes(2, byteorder='little').hex()
+  c_ = c.to_bytes(2, byteorder='little').hex()
+  d_ = d.to_bytes(2, byteorder='little').hex()
+  print("0x"+a_+b_+c_)
+  #print("0x"+e_+a_+b_+c_+d_)
+  #print("0x"+hex(e)[2:].zfill(2)+hex(a)[2:].zfill(4)+hex(b)[2:].zfill(4)+hex(c)[2:].zfill(4)+hex(d)[2:].zfill(4))
 
 # Argument packing
 ###################
 
 
+
+
+def gen_setmod(offset,bytelen):
+  print(hex(bytelen),hex(offset),"setmod");
 
 
 ####################
@@ -214,9 +234,9 @@ def gen_evm384_offsets(a,b,c,d):
 # field add, sub, mul
 
 # for counting number of operations
-addmod384_count=0
-submod384_count=0
-mulmodmont384_count=0
+addmodmont_count=0
+submodmont_count=0
+mulmodmont_count=0
 f2add_count=0
 f2sub_count=0
 f2mul_count=0
@@ -272,24 +292,23 @@ def gen_fsqr(f,out,x,mod):
 # f1
 
 def gen_f1add(out,x,y,mod):
-  global addmod384_count
-  gen_evm384_offsets(out,x,y,mod); print("addmod384"); addmod384_count+=1
+  global addmodmont_count
+  print("addmodmont", end=" "); gen_offsets(out,x,y,mod,6); addmodmont_count+=1
 
 def gen_f1sub(out,x,y,mod):
-  global submod384_count
-  gen_evm384_offsets(out,x,y,mod); print("submod384"); submod384_count+=1
+  global submodmont_count
+  print("submodmont", end=" "); gen_offsets(out,x,y,mod,6); submodmont_count+=1
 
 def gen_f1mul(out,x,y,mod):
-  global mulmodmont384_count
-  gen_evm384_offsets(out,x,y,mod); print("mulmodmont384"); mulmodmont384_count+=1
+  global mulmodmont_count
+  print("mulmodmont", end=" "); gen_offsets(out,x,y,mod,6); mulmodmont_count+=1
   
 def gen_f1neg(out,x,mod):
-  global submod384_count
-  gen_evm384_offsets(out,f1zero,x,mod); print("submod384"); submod384_count+=1
+  global submodmont_count
+  print("submodmont", end=" "); gen_offsets(out,f1zero,x,mod,6); submodmont_count+=1
 
 def gen_f1inverse(out,x,mod):
   print("INVERSEMOD_BLS12381()")	# this is in a separate huff file
-  #print("INVERSEMOD_BLS12381_NAIVE()")	# this is in a separate huff file
   pass
 
 
@@ -389,7 +408,7 @@ def gen_mul_by_u_plus_1_fp2(out,x,mod):
   t = buffer_f2mul	# to prevent clobbering, took a while to find this bug
   gen_f1add(t, x, x+48, mod)
   gen_f1sub(out, x, x+48, mod)
-  gen_memcopy(out+48,t,48)
+  gen_memcopy(out+48,t,48,mod)
 
 def gen_f2inverse(out,x,mod):
   # get offsets
@@ -822,7 +841,7 @@ def gen_mul_by_xy00z0_fp12(out,x,y,mod):
   t21 = t2+96
   gen_mul_by_xy0_fp6(t0,x0,y,mod)
   gen_mul_by_0y0_fp6(t1,x1,y2,mod)
-  gen_memcopy(t20,y0,96)
+  gen_memcopy(t20,y0,96,mod)
   gen_f2add(t21,y1,y2,mod)
   gen_f6add(out1,x0,x1,mod)
   gen_mul_by_xy0_fp6(out1,out1,t2,mod)
@@ -882,11 +901,11 @@ def gen_f2frobeniusmap(out,x,n,mod):
   out1 = out0+48
   x0 = x
   x1 = x0+48
-  gen_memcopy(out0,x0,48)
+  gen_memcopy(out0,x0,48,mod)
   if n&1:			# TODO, check cneg() with input 0 or 1, I think that input 0 means do nothing
     gen_f1neg(out1,x1,mod)	# TODO: check if cneg() corresponds to f1neg()
   else:
-    gen_memcopy(out1,x1,48)
+    gen_memcopy(out1,x1,48,mod)
 
 def gen_f6frobeniusmap(out,x,n,mod):
   x0 = x
@@ -1231,8 +1250,8 @@ def gen_line_add(line,T,R,Q,mod):
   gen_f2mul(J,QY,TZ,mod)
   gen_f2sub(I,I,J,mod)
   gen_f2add(line0,I,I,mod)
-  #gen_memcopy(line1,r,96)	# already done in the 
-  gen_memcopy(line2,TZ,96)	
+  #gen_memcopy(line1,r,96,mod)	# already done in the 
+  gen_memcopy(line2,TZ,96,mod)	
   
 def gen_line_dbl(line,T,Q,mod):
   # line is 3 f2s, T is E2 point, Q E2 point	(note: our pairing algorithm, T=Q)
@@ -1278,9 +1297,9 @@ def gen_start_dbl(out,T,Px2,mod):
   line2 = line0+192
   gen_line_dbl(line,T,T,mod)
   gen_line_by_Px2(line,Px2,mod)
-  gen_memcopy(out,zero,576)
-  gen_memcopy(out00,line0,192)
-  gen_memcopy(out11,line2,96)
+  gen_memcopy(out,zero,576,mod)
+  gen_memcopy(out00,line0,192,mod)
+  gen_memcopy(out11,line2,96,mod)
 
 count_pairing_eq2_test = 0
 def gen_add_dbl_loop(out,T,Q,Px2,mod):
@@ -1332,8 +1351,8 @@ def gen_miller_loop(out,P,Q,mod):
   gen_f1add(Px2X,PX,PX,mod)
   gen_f1neg(Px2X,Px2X,mod)
   gen_f1add(Px2Y,PY,PY,mod)
-  gen_memcopy(TX,QX,192)
-  gen_memcopy(TZ,f12one,96)
+  gen_memcopy(TX,QX,192,mod)
+  gen_memcopy(TZ,f12one,96,mod)
   # execute
   gen_start_dbl(out,T,Px2,mod)
   gen_add_dbl_loop(out,T,Q,Px2,mod)
@@ -1358,19 +1377,20 @@ Function calls operate on hard-coded memory offsets, so there may be memcopy inp
 
 def gen_f12raise_to_z_with_function_calls(out,x,mod):
   if x!=buffer_f12_function2:
-    gen_memcopy(buffer_f12_function2,x,48*12)
+    gen_memcopy(buffer_f12_function2,x,48*12,mod)
   gen_f12raise_to_z_div_by_2_with_function_calls(buffer_f12_function,buffer_f12_function2,mod)
   gen_f12sqrcyclotomic_loop_with_function_call(buffer_f12_function,buffer_f12_function,mod,1)
   if out!=buffer_f12_function:
-    gen_memcopy(out,buffer_f12_function,48*12)
+    gen_memcopy(out,buffer_f12_function,48*12,mod)
 
 def gen_f12raise_to_z_div_by_2_with_function_calls(out,x,mod):
-  if x not in [buffer_f12_function,buffer_f12_function2]:
-    gen_mergedmemcopy([buffer_f12_function,buffer_f12_function2],x,48*12)
-  elif x!=buffer_f12_function:
-    gen_memcopy(buffer_f12_function,x,48*12)
+  #if x not in [buffer_f12_function,buffer_f12_function2]:
+  #  gen_mergedmemcopy([buffer_f12_function,buffer_f12_function2],x,48*12)
+  # elif... the rest
+  if x!=buffer_f12_function:
+    gen_memcopy(buffer_f12_function,x,48*12,mod)
   elif x!=buffer_f12_function2:
-    gen_memcopy(buffer_f12_function2,x,48*12)
+    gen_memcopy(buffer_f12_function2,x,48*12,mod)
   gen_f12sqrcyclotomic_loop_with_function_call(buffer_f12_function,buffer_f12_function,mod,1)
   gen_f12mul_n_sqr_with_function_calls(buffer_f12_function,buffer_f12_function,buffer_f12_function2,mod,2)
   gen_f12mul_n_sqr_with_function_calls(buffer_f12_function,buffer_f12_function,buffer_f12_function2,mod,3)
@@ -1379,31 +1399,31 @@ def gen_f12raise_to_z_div_by_2_with_function_calls(out,x,mod):
   gen_f12mul_n_sqr_with_function_calls(buffer_f12_function,buffer_f12_function,buffer_f12_function2,mod,16-1)
   gen_f12conjugate(buffer_f12_function,mod)
   if out!=buffer_f12_function:
-    gen_memcopy(out,buffer_f12_function,48*12)
+    gen_memcopy(out,buffer_f12_function,48*12,mod)
 
 def gen_f12mul_n_sqr_with_function_calls(out,x,y,mod,numiters):
   if x!=buffer_f12_function:
-    gen_memcopy(buffer_f12_function,x,48*12)
+    gen_memcopy(buffer_f12_function,x,48*12,mod)
   if y!=buffer_f12_function2:
-    gen_memcopy(buffer_f12_function2,y,48*12)
+    gen_memcopy(buffer_f12_function2,y,48*12,mod)
   gen_f12mul_with_function_call(buffer_f12_function,buffer_f12_function,buffer_f12_function2,mod)
   gen_f12sqrcyclotomic_loop_with_function_call(buffer_f12_function,buffer_f12_function,mod,numiters)
   if out!=buffer_f12_function:
-    gen_memcopy(out,buffer_f12_function,48*12)
+    gen_memcopy(out,buffer_f12_function,48*12,mod)
 
 count_f12mul_function_call_num = 0
 def gen_f12mul_with_function_call(out,x,y,mod):
   global count_f12mul_function_call_num
   count_f12mul_function_call_num+=1
   if x!=buffer_f12_function:
-    gen_memcopy(buffer_f12_function,x,48*12)
+    gen_memcopy(buffer_f12_function,x,48*12,mod)
   if y!=buffer_f12_function2:
-    gen_memcopy(buffer_f12_function2,y,48*12)
+    gen_memcopy(buffer_f12_function2,y,48*12,mod)
   print("f12mul_return_location"+str(count_f12mul_function_call_num))	# push return location
   print("f12mul_function_call jump")	# jump to f12mul
   print("f12mul_return_location"+str(count_f12mul_function_call_num)+":")	# return location
   if out!=buffer_f12_function:
-    gen_memcopy(out,buffer_f12_function,48*12)
+    gen_memcopy(out,buffer_f12_function,48*12,mod)
 
 def gen_f12mul_function(out,x,mod):
   # stack should be: returndest
@@ -1416,14 +1436,14 @@ def gen_f12sqrcyclotomic_loop_with_function_call(out,x,mod,numiters):
   global count_f12sqrcyclotomic_loop_with_function_call_num
   count_f12sqrcyclotomic_loop_with_function_call_num+=1
   if x!=buffer_f12_function:
-    gen_memcopy(buffer_f12_function,x,48*12)
+    gen_memcopy(buffer_f12_function,x,48*12,mod)
   # set up stack: return_jumpdest, numiters
   print("f12sqrcyclotomic_loop_return_location"+str(count_f12sqrcyclotomic_loop_with_function_call_num))	# push jumpdest to return to
   print(numiters)	# push number of iterations
   print("f12sqrcyclotomic_loop_function_call jump")
   print("f12sqrcyclotomic_loop_return_location"+str(count_f12sqrcyclotomic_loop_with_function_call_num)+":")
   if out!=buffer_f12_function:
-    gen_memcopy(out,buffer_f12_function,48*12)
+    gen_memcopy(out,buffer_f12_function,48*12,mod)
 
 def gen_f12sqrcyclotomic_loop_function(out,x,mod):
   # stack should be: returndest, numiters
@@ -1447,7 +1467,7 @@ def gen_final_exponentiation_with_function_calls(out,in_,mod):
   gen_frobenius_coeffs()
 
   if 0:	# if don't want to clobber input
-    gen_memcopy(y1,in_,48*12)
+    gen_memcopy(y1,in_,48*12,mod)
   else:
     y1 = in_
   gen_f12conjugate(y1,mod)
@@ -1459,7 +1479,7 @@ def gen_final_exponentiation_with_function_calls(out,in_,mod):
   gen_f12sqrcyclotomic_loop_with_function_call(y0,out,mod,1)
   gen_f12raise_to_z_with_function_calls(y1,y0,mod)
   gen_f12raise_to_z_div_by_2_with_function_calls(y2,y1,mod)
-  gen_memcopy(y3,out,48*12)
+  gen_memcopy(y3,out,48*12,mod)
   gen_f12conjugate(y3,mod)
   gen_f12mul_with_function_call(y1,y1,y3,mod)
   gen_f12conjugate(y1,mod)
@@ -1500,7 +1520,7 @@ def gen_final_exponentiation_with_function_calls_optimized_mem_locations(out,in_
   b1=buffer_f12_function
   b2=buffer_f12_function2
 
-  gen_memcopy(b1,in_,48*12)
+  gen_memcopy(b1,in_,48*12,mod)
 
   # note: hard-code in and out to both be same buffer
   in_=b1
@@ -1512,32 +1532,32 @@ def gen_final_exponentiation_with_function_calls_optimized_mem_locations(out,in_
   gen_f12frobeniusmap(b2,b1,2,mod)
   gen_f12mul_with_function_call(b1,b1,b2,mod)
 
-  #gen_memcopy(y0,b1,48*12)
-  #gen_memcopy(y1,b1,48*12)
-  gen_mergedmemcopy([y0,y1],b1,48*12)	# this is the above two memcopys but merged, to save bytecode size
+  gen_memcopy(y0,b1,48*12,mod)
+  gen_memcopy(y1,b1,48*12,mod)
+  #gen_mergedmemcopy([y0,y1],b1,48*12)	# this is the above two memcopys but merged, to save bytecode size
 
   gen_f12sqrcyclotomic_loop_with_function_call(b1,b1,mod,1)
-  gen_memcopy(y2,b1,48*12)
+  gen_memcopy(y2,b1,48*12,mod)
   gen_f12raise_to_z_with_function_calls(b1,b1,mod)
-  gen_memcopy(y3,b1,48*12)
+  gen_memcopy(y3,b1,48*12,mod)
   gen_f12raise_to_z_div_by_2_with_function_calls(b1,b1,mod)
-  gen_memcopy(y4,b1,48*12)
+  gen_memcopy(y4,b1,48*12,mod)
   gen_f12conjugate(y0,mod)
   gen_f12mul_with_function_call(b1,y3,y0,mod)
   gen_f12conjugate(b1,mod)
   gen_f12mul_with_function_call(b1,b1,y4,mod)
-  gen_memcopy(y0,b1,48*12)
+  gen_memcopy(y0,b1,48*12,mod)
   gen_f12raise_to_z_with_function_calls(b1,b1,mod)
-  gen_memcopy(y3,b1,48*12)
+  gen_memcopy(y3,b1,48*12,mod)
   gen_f12raise_to_z_with_function_calls(b1,b1,mod)
   gen_f12conjugate(y0,mod)
   gen_f12mul_with_function_call(b1,b1,y0,mod)
-  gen_memcopy(y4,b1,48*12)
+  gen_memcopy(y4,b1,48*12,mod)
   gen_f12conjugate(y0,mod)
   gen_f12frobeniusmap(y0,y0,3,mod)
   gen_f12frobeniusmap(y3,y3,2,mod)
   gen_f12mul_with_function_call(b1,y0,y3,mod)
-  gen_memcopy(y0,b1,48*12)
+  gen_memcopy(y0,b1,48*12,mod)
   gen_f12raise_to_z_with_function_calls(b1,y4,mod)
   gen_f12mul_with_function_call(b1,b1,y2,mod)
   gen_f12mul_with_function_call(b1,b1,y1,mod)
@@ -1546,7 +1566,7 @@ def gen_final_exponentiation_with_function_calls_optimized_mem_locations(out,in_
   gen_f12mul_with_function_call(b1,b1,y1,mod)
 
   if out!=b1:
-    gen_memcopy(out,b1,48*12)
+    gen_memcopy(out,b1,48*12,mod)
 
   print("final_exp_done jump")
 
@@ -1575,6 +1595,7 @@ def gen_consts(miller_loop_flag):
   # prime and montgomery parameter 89f3fffcfffcfffd
   p = "89f3fffcfffcfffd1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab"
   gen_memstore(mod,bytes.fromhex(p)[::-1])
+  gen_setmod(mod,48)
 
 def gen_pairing():
   print("#include \"inversemod/inversemod_bls12381.huff\"")
@@ -1632,8 +1653,8 @@ def gen_miller_loop_unrolled(out,P,Q,mod):
   gen_f1add(Px2X,PX,PX,mod)
   gen_f1neg(Px2X,Px2X,mod)
   gen_f1add(Px2Y,PY,PY,mod)
-  gen_memcopy(TX,QX,192)
-  gen_memcopy(TZ,f12one,96)
+  gen_memcopy(TX,QX,192,mod)
+  gen_memcopy(TZ,f12one,96,mod)
   # execute
   gen_start_dbl(out,T,Px2,mod)
   gen_add_dbl_unrolled(out,T,Q,Px2,2,mod)
@@ -1669,7 +1690,7 @@ def gen_final_exponentiation_unrolled(out,in_,mod):
 
   gen_frobenius_coeffs()
 
-  gen_memcopy(y1,in_,48*12)
+  gen_memcopy(y1,in_,48*12,mod)
   gen_f12conjugate(y1,mod)
   gen_f12inverse(y2,in_,mod)
   gen_f12mul(out,y1,y2,mod)
@@ -1679,7 +1700,7 @@ def gen_final_exponentiation_unrolled(out,in_,mod):
   gen_f12sqrcyclotomic(y0,out,mod)
   gen_f12raise_to_z_unrolled(y1,y0,mod)
   gen_f12raise_to_z_div_by_2_unrolled(y2,y1,mod)
-  gen_memcopy(y3,out,48*12)
+  gen_memcopy(y3,out,48*12,mod)
   gen_f12conjugate(y3,mod)
   gen_f12mul(y1,y1,y3,mod)
   gen_f12conjugate(y1,mod)
@@ -1731,7 +1752,7 @@ if __name__=="__main__":
   #gen_pairing_unrolled()
   #print(mem_offsets)
   if 0:
-    print("addmod384_count ",addmod384_count)
-    print("submod384_count ",submod384_count)
-    print("mulmodmont384_count ",mulmodmont384_count)
+    print("addmodmont_count ",addmodmont_count)
+    print("submodmont_count ",submodmont_count)
+    print("mulmodmont_count ",mulmodmont_count)
 

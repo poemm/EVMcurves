@@ -1,4 +1,4 @@
-This is an experiment to implement the BLS12-381 pairing operation in EVM with the proposed EVM384 extension (three new opcodes: `ADDMOD384`, `SUBMOD384`, `MULMODMONT384`). Feedback and discussion occurs on Ethereum AllCoreDevs chat, AllCoreDevs calls, and on [this discussion thread](https://ethereum-magicians.org/t/evm384-feedback-and-discussion/4533).
+This is an experiment to implement the BLS12-381 pairing operation in EVM with the proposed EVM384 extension (four new opcodes: `SETMOD`, `ADDMODMONT`, `SUBMODMONT`, `MULMODMONT`). Feedback and discussion occurs on Ethereum AllCoreDevs chat, AllCoreDevs calls, and on [this discussion thread](https://ethereum-magicians.org/t/evm384-feedback-and-discussion/4533).
 
 
 ## Files
@@ -31,7 +31,7 @@ Get huff, an EVM bytecode text format and assembler, with extra syntax for macro
 ```
 git clone https://github.com/AztecProtocol/huff.git
 cd huff
-git checkout 09624090cf4f51174ecf426f325c579823cffe50	# From Feb 24, 2020. Maybe a more recent version will work
+git checkout 09624090cf4f51174ecf426f325c579823cffe50	# most recent version at time of writing this
 cd ..
 ```
 
@@ -47,6 +47,7 @@ Set up huff. Note: This will get dependencies listed in `huff/package.json`. Don
 ```
 cd huff
 npm install
+# If there are security warnings, you can optionally use the suggested commands to fix them.
 cd ..
 ```
 
@@ -74,5 +75,5 @@ Edit `genhuff.py` or `main.huff` to generate custom crypto.
 - Algebraic hashing e.g. Pedersen hashing
 - Polynomial evaluation e.g. STARK verifiers
 - Other crypto primitives
-- Other Cryptosystems
+- Other cryptosystems
 
