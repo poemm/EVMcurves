@@ -1,7 +1,7 @@
 
 
-# this is the naive way, always prints PUSH16... MULMODMONT384, results in large bytecode
-def naive_all_push16(formulas,mod_offset,t_offsets):
+# prints MULMODMONT PUSH9... for each one
+def gen_huff_chain(formulas,mod_offset,t_offsets):
   count_bytes = 0
   stack=[]
   for idx in range(len(formulas)):
@@ -10,49 +10,28 @@ def naive_all_push16(formulas,mod_offset,t_offsets):
     t=int(t[1:])
     if f[:3]=="sqr":
       v1 = int(f[:-1][5:])
-      push16=hex(t_offsets[t])[2:].zfill(8)+hex(t_offsets[v1])[2:].zfill(8)+hex(t_offsets[v1])[2:].zfill(8)+hex(mod_offset)[2:].zfill(8)
+      numlimbs = (6).to_bytes(1, byteorder='little').hex()
+      out = t_offsets[t].to_bytes(2, byteorder='little').hex()
+      x = t_offsets[v1].to_bytes(2, byteorder='little').hex()
+      mod = mod_offset.to_bytes(2, byteorder='little').hex()
+      immediate=out+x+x
+      #immediate=hex(6)[2:].zfill(2)+hex(t_offsets[t])[2:].zfill(4)+hex(t_offsets[v1])[2:].zfill(4)+hex(t_offsets[v1])[2:].zfill(4)+hex(mod_offset)[2:].zfill(4)
     else:
       v1,v2=f.split("*")
       v1=int(v1[1:])
       v2=int(v2[1:])
-      push16=hex(t_offsets[t])[2:].zfill(8)+hex(t_offsets[v1])[2:].zfill(8)+hex(t_offsets[v2])[2:].zfill(8)+hex(mod_offset)[2:].zfill(8)
-    print("0x"+push16,"mulmodmont384	// ",f, )
-    count_bytes += 18
+      numlimbs = (6).to_bytes(1, byteorder='little').hex()
+      out = t_offsets[t].to_bytes(2, byteorder='little').hex()
+      x = t_offsets[v1].to_bytes(2, byteorder='little').hex()
+      y = t_offsets[v2].to_bytes(2, byteorder='little').hex()
+      mod = mod_offset.to_bytes(2, byteorder='little').hex()
+      immediate=out+x+y
+      #immediate=hex(6)[2:].zfill(2)+hex(t_offsets[t])[2:].zfill(4)+hex(t_offsets[v1])[2:].zfill(4)+hex(t_offsets[v2])[2:].zfill(4)+hex(mod_offset)[2:].zfill(4)
+    print("mulmodmont 0x"+immediate,"       // ",f, )
+    count_bytes += 11
 
   print("// count_bytes",count_bytes)
 
-
-#################
-
-# this is an optimization to the naive way, DUP's whenever possible, PUSH16s when not already on stack, then MULMODMONT384, results in smaller bytecode
-def dup_or_push_and_dup(formulas,mod_offset,t_offsets):
-  count_bytes = 0
-  stack=[]
-  for idx in range(len(formulas)):
-    f=formulas[idx]
-    t,f=f.split("=")
-    t=int(t[1:])
-    if f[:3]=="sqr":
-      v1 = int(f[:-1][5:])
-      push16=hex(t_offsets[t])[2:].zfill(8)+hex(t_offsets[v1])[2:].zfill(8)+hex(t_offsets[v1])[2:].zfill(8)+hex(mod_offset)[2:].zfill(8)
-    else:
-      v1,v2=f.split("*")
-      v1=int(v1[1:])
-      v2=int(v2[1:])
-      push16=hex(t_offsets[t])[2:].zfill(8)+hex(t_offsets[v1])[2:].zfill(8)+hex(t_offsets[v2])[2:].zfill(8)+hex(mod_offset)[2:].zfill(8)
-    if push16 not in stack[-16:]:
-      stack+=[push16]
-      print("0x"+push16,end=' ')
-      count_bytes += 17
-    for i,e in enumerate(stack[-1:-17:-1]):
-      if e==push16:
-        print("dup"+str(i+1),end=' ')	# might be off by one
-        count_bytes += 1
-        break
-    print("mulmodmont384	// ",f)
-    count_bytes += 1
-
-  print("// count_bytes",count_bytes)
 
 if __name__=="__main__":
 
@@ -93,13 +72,6 @@ if __name__=="__main__":
   formulas=formulas[1:]
 
   print("#define macro INVERSEMOD_BLS12381 = takes(0) returns(0) {")
-  dup_or_push_and_dup(formulas,mod_offset,t_offsets)
+  gen_huff_chain(formulas,mod_offset,t_offsets)
   print("} // INVERSEMOD_BLS12381")
-
-  print("#define macro INVERSEMOD_BLS12381_NAIVE = takes(0) returns(0) {")
-  naive_all_push16(formulas,mod_offset,t_offsets)
-  print("} // INVERSEMOD_BLS12381_NAIVE")
-
-
-
 

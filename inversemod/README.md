@@ -17,7 +17,7 @@ Copy the output from `addchain` to file `addchain_boscosterwin3.txt` as below.
 Next we convert `addchain_boscosterwin3.txt` to huff using a custom script.
 
 ```
-python3 addchain2huff.py > inversemod384.huff
+python3 addchain2huff.py > inversemod_bls12381.huff
 ```
 
 Note that we hard-code some parameters in `addchain2huff.py` like input memory offset, output memory offset, temporary value offsets, and the memory offset to the modulus. Also, we only have nine temporary value offsets, which may not be enough for other addition chains.
